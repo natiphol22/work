@@ -3,182 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubicPlus | Admin Management</title>
+    <title>CubicPlus | Admin Settings</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { 
-            font-family: 'Kanit', sans-serif;
-            background-color: #f8fafc;
-        }
-        .glass-header {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-        }
-        .table-container {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
-        }
+        body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
+        .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+        .card-neo { background: white; border: 1px solid #f1f5f9; border-radius: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02); }
         tr:hover { background-color: #fcfdfe; }
-        .memo-badge {
-            max-width: 250px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
     </style>
 </head>
 <body class="min-h-screen pb-12">
 
-    <!-- Top Navigation -->
     <nav class="glass-header sticky top-0 z-50 px-6 py-4 mb-8">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
-                    <i data-lucide="layers" class="text-white w-6 h-6"></i>
+                    <i data-lucide="settings" class="text-white w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-slate-800 leading-none">Attendance Insights</h1>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">CubicPlus Administrative</p>
+                    <h1 class="text-xl font-bold text-slate-800 leading-none">Admin Control</h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">CubicPlus Management</p>
                 </div>
             </div>
 
             <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <div class="relative flex-1 md:w-48">
-                    <i data-lucide="calendar" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="month" id="filterMonth" onchange="loadAdminData()" 
-                        class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
-                </div>
-                <div class="relative flex-1 md:w-64">
-                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="filterUser" placeholder="ค้นหาชื่อพนักงาน..." onkeyup="loadAdminData()" 
-                        class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
-                </div>
-                <button onclick="loadAdminData()" class="p-2.5 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors">
-                    <i data-lucide="refresh-cw" class="w-5 h-5 text-slate-500"></i>
+                <button onclick="toggleSettings()" class="p-2.5 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors flex items-center gap-2 text-sm text-slate-600">
+                    <i data-lucide="clock-cog" class="w-4 h-4"></i> ตั้งเวลา
+                </button>
+                <button onclick="exportToCSV()" class="px-4 py-2.5 bg-emerald-500 text-white rounded-2xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100 text-sm font-medium flex items-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i> Export
                 </button>
             </div>
         </div>
     </nav>
 
     <div class="max-w-7xl mx-auto px-6">
-        <!-- Stats Summary (Optional) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                    <i data-lucide="user-check"></i>
+        
+        <!-- Settings Panel (Hidden by default) -->
+        <div id="settingsPanel" class="hidden mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 animate-modal">
+            <div class="bg-indigo-900 rounded-[2.5rem] p-8 text-white shadow-xl shadow-indigo-100">
+                <div class="flex items-center gap-3 mb-6">
+                    <i data-lucide="alarm-clock" class="text-indigo-300"></i>
+                    <h2 class="font-bold tracking-tight">กำหนดเวลามาตรฐาน</h2>
                 </div>
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Present Today</p>
-                    <h3 id="statPresent" class="text-2xl font-bold text-slate-800">-</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] uppercase tracking-widest text-indigo-300 font-bold">เวลาเข้างาน</label>
+                        <input type="time" id="configIn" value="09:00" onchange="loadAdminData()" class="w-full mt-2 bg-indigo-800 border-none rounded-2xl p-3 text-white focus:ring-2 focus:ring-indigo-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase tracking-widest text-indigo-300 font-bold">เวลาเลิกงาน</label>
+                        <input type="time" id="configOut" value="18:00" onchange="loadAdminData()" class="w-full mt-2 bg-indigo-800 border-none rounded-2xl p-3 text-white focus:ring-2 focus:ring-indigo-400 outline-none">
+                    </div>
                 </div>
+            </div>
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 p-8 flex flex-col justify-center">
+                <p class="text-sm text-slate-500 leading-relaxed">
+                    <span class="font-bold text-indigo-600">Tip:</span> ระบบจะใช้ค่าเหล่านี้ในการประมวลผลสถานะ <br>
+                    - เข้างานหลัง <span class="inTimeText font-bold">09:00</span> = <span class="text-rose-500 font-bold">สาย</span> <br>
+                    - ออกงานก่อน <span class="outTimeText font-bold">18:00</span> = <span class="text-amber-500 font-bold">กลับก่อน</span>
+                </p>
             </div>
         </div>
 
-        <!-- Table Data -->
-        <div class="table-container bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden">
+        <!-- Filters & Stats -->
+        <div class="flex flex-col md:flex-row gap-4 mb-8">
+            <div class="relative flex-1">
+                <i data-lucide="calendar" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="month" id="filterMonth" onchange="loadAdminData()" class="w-full pl-12 pr-4 py-4 rounded-3xl border border-slate-100 bg-white text-sm focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all">
+            </div>
+            <div class="relative flex-[2]">
+                <i data-lucide="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="filterUser" placeholder="ค้นหาชื่อพนักงาน..." onkeyup="loadAdminData()" class="w-full pl-12 pr-4 py-4 rounded-3xl border border-slate-100 bg-white text-sm focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all">
+            </div>
+        </div>
+
+        <div class="card-neo overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50/50">
-                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">วันที่ & เวลา</th>
-                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">พนักงาน</th>
-                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">ประเภท</th>
-                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">สรุปงาน (Memo)</th>
-                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">สถานะ</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">ข้อมูลเวลา</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">พนักงาน</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">สถานะ</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">สรุปงาน</th>
+                            <th class="p-6 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest text-slate-300 italic">Auth</th>
                         </tr>
                     </thead>
-                    <tbody id="tbody" class="divide-y divide-slate-50">
-                        <!-- Data rows load here -->
-                    </tbody>
+                    <tbody id="tbody" class="divide-y divide-slate-50"></tbody>
                 </table>
             </div>
-            <div id="loader" class="py-20 text-center hidden">
-                <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-indigo-500"></i>
-                <p class="text-sm text-slate-400 mt-2">กำลังดึงข้อมูลจาก Cloud...</p>
-            </div>
-            <div id="noData" class="py-20 text-center hidden">
-                <i data-lucide="folder-open" class="w-10 h-10 mx-auto text-slate-200 mb-2"></i>
-                <p class="text-sm text-slate-400">ไม่พบประวัติในช่วงเวลาที่เลือก</p>
-            </div>
+            <div id="loader" class="py-20 text-center hidden"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-indigo-500"></i></div>
+        </div>
+    </div>
+
+    <!-- Popup Modal -->
+    <div id="popupModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closePopup()"></div>
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 relative z-10 shadow-2xl transition-all">
+            <div id="popupUser" class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-4"></div>
+            <div id="popupText" class="text-slate-600 text-base leading-relaxed whitespace-pre-wrap"></div>
+            <button onclick="closePopup()" class="w-full mt-10 py-4 bg-indigo-600 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">เข้าใจแล้ว</button>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3zhvuLCfMJlKmCVgWBXLays-RfYsvvOdk07U8j7mlCGtT4SHyt_ubF9hmlxtFzycgNg/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzE_zj0ZjtsrGZprhQwQI8uyg8AUe264I5p8g4ForxVv4ODrYMlFIWNsEbJXxZnjLOfBw/exec";
+        let currentData = [];
+
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('hidden');
+        }
 
         async function loadAdminData() {
             const month = document.getElementById('filterMonth').value;
             const target = document.getElementById('filterUser').value;
             const tbody = document.getElementById('tbody');
             const loader = document.getElementById('loader');
-            const noData = document.getElementById('noData');
+            
+            // Get Config Time
+            const configIn = document.getElementById('configIn').value;
+            const configOut = document.getElementById('configOut').value;
+            document.querySelectorAll('.inTimeText').forEach(el => el.innerText = configIn);
+            document.querySelectorAll('.outTimeText').forEach(el => el.innerText = configOut);
 
             tbody.innerHTML = '';
             loader.classList.remove('hidden');
-            noData.classList.add('hidden');
 
             try {
-                // ส่ง role=admin ไปด้วยเพื่อให้ Apps Script ปลดล็อคการดึงข้อมูลทั้งหมด
                 const res = await fetch(`${SCRIPT_URL}?action=getHistory&role=admin&month=${month}&targetUser=${target}`);
-                const data = await res.json();
-                
+                currentData = await res.json();
                 loader.classList.add('hidden');
 
-                if (!data || data.length === 0) {
-                    noData.classList.remove('hidden');
-                    return;
-                }
-
-                // สถิติเบื้องต้น (พนักงานที่มาวันนี้)
-                const today = new Date().toDateString();
-                const uniqueUsers = new Set(data.filter(i => new Date(i.timestamp).toDateString() === today).map(i => i.name));
-                document.getElementById('statPresent').innerText = uniqueUsers.size + " คน";
-
-                tbody.innerHTML = data.reverse().map(item => {
-                    const isCheckIn = item.type.includes('เข้า');
+                tbody.innerHTML = currentData.reverse().map(item => {
                     const dateObj = new Date(item.timestamp);
+                    const isCheckIn = item.type.includes('เข้า');
                     
+                    // Logic Check Late / Early Out
+                    const [confInH, confInM] = configIn.split(':').map(Number);
+                    const [confOutH, confOutM] = configOut.split(':').map(Number);
+                    
+                    let timeColor = 'text-slate-700';
+                    let statusLabel = item.type;
+                    
+                    if (isCheckIn) {
+                        if (dateObj.getHours() > confInH || (dateObj.getHours() === confInH && dateObj.getMinutes() > confInM)) {
+                            timeColor = 'text-rose-500';
+                            statusLabel += ' (สาย)';
+                        }
+                    } else {
+                        if (dateObj.getHours() < confOutH || (dateObj.getHours() === confOutH && dateObj.getMinutes() < confOutM)) {
+                            timeColor = 'text-amber-500';
+                            statusLabel += ' (กลับก่อน)';
+                        }
+                    }
+
+                    const safeMemo = item.memo ? item.memo.replace(/'/g, "\\'").replace(/"/g, '\\"') : '';
+
                     return `
-                        <tr class="transition-colors">
+                        <tr>
                             <td class="p-6">
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-medium text-slate-700">${dateObj.toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'2-digit'})}</span>
-                                    <span class="text-lg font-bold text-indigo-600">${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 tracking-wider mb-1">${dateObj.toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'2-digit'})}</span>
+                                    <span class="text-xl font-bold ${timeColor}">${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</span>
                                 </div>
                             </td>
-                            <td class="p-6">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                                        ${item.name.charAt(0)}
-                                    </div>
-                                    <span class="font-semibold text-slate-800">${item.name}</span>
-                                </div>
-                            </td>
-                            <td class="p-6">
-                                <span class="px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${isCheckIn ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
-                                    ${item.type}
+                            <td class="p-6 text-sm font-semibold text-slate-700">${item.name}</td>
+                            <td class="p-6 text-center">
+                                <span class="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${isCheckIn ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}">
+                                    ${statusLabel}
                                 </span>
                             </td>
                             <td class="p-6">
-                                <p class="text-sm text-slate-500 italic font-light memo-badge" title="${item.memo || '-'}">
-                                    ${item.memo ? `"${item.memo}"` : '<span class="text-slate-300">ไม่มีบันทึก</span>'}
-                                </p>
+                                ${item.memo ? `<button onclick="openPopup('${item.name}', '${safeMemo}')" class="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-xs font-medium hover:bg-indigo-100 transition-all truncate max-w-[200px]">📝 อ่านสรุปงาน</button>` : '<span class="text-[10px] text-slate-300 font-bold">ไม่มีบันทึก</span>'}
                             </td>
-                            <td class="p-6 text-right">
-                                <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-bold uppercase tracking-tighter">Verified</span>
-                            </td>
+                            <td class="p-6 text-right"><i data-lucide="check-circle-2" class="w-4 h-4 text-slate-200 ml-auto"></i></td>
                         </tr>
                     `;
                 }).join('');
-                
                 lucide.createIcons();
-            } catch (e) { 
-                console.error(e);
-                loader.classList.add('hidden');
-                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
-            }
+            } catch (e) { loader.classList.add('hidden'); }
+        }
+
+        function openPopup(user, text) {
+            document.getElementById('popupUser').innerText = "Update By: " + user;
+            document.getElementById('popupText').innerText = text;
+            document.getElementById('popupModal').classList.remove('hidden');
+        }
+
+        function closePopup() { document.getElementById('popupModal').classList.add('hidden'); }
+
+        function exportToCSV() {
+            if (currentData.length === 0) return alert("ไม่มีข้อมูล");
+            const headers = ["วันที่", "ชื่อ", "ประเภท", "สรุปงาน"];
+            const csvContent = "\uFEFF" + [headers.join(","), ...currentData.map(row => [new Date(row.timestamp).toLocaleString(), row.name, row.type, `"${row.memo || ''}"`].join(","))].join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `CubicPlus_Report.csv`;
+            link.click();
         }
 
         window.onload = () => {
