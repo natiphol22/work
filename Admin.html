@@ -2,35 +2,106 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubicPlus | Admin Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { 
+            font-family: 'Kanit', sans-serif;
+            background-color: #f8fafc;
+        }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .table-container {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+        }
+        tr:hover { background-color: #fcfdfe; }
+        .memo-badge {
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
 </head>
-<body class="p-6 bg-slate-50 font-['Kanit']">
-    <div class="max-w-5xl mx-auto">
-        <header class="mb-8 flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Attendance Report</h1>
-            <div class="flex gap-2">
-                <input type="month" id="filterMonth" onchange="loadAdminData()" class="p-2 rounded-xl border-none shadow-sm">
-                <input type="text" id="filterUser" placeholder="ชื่อพนักงาน..." onkeyup="loadAdminData()" class="p-2 rounded-xl border-none shadow-sm">
-            </div>
-        </header>
+<body class="min-h-screen pb-12">
 
-        <div id="adminContent" class="grid grid-cols-1 gap-4">
-             <!-- ส่วนแสดงผลเหมือนที่คุณทำไว้ (Table) -->
-             <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-slate-400 text-xs uppercase">
-                        <tr>
-                            <th class="p-5">วันที่</th>
-                            <th class="p-5">ชื่อ</th>
-                            <th class="p-5">ประเภท</th>
-                            <th class="p-5">เวลา</th>
+    <!-- Top Navigation -->
+    <nav class="glass-header sticky top-0 z-50 px-6 py-4 mb-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
+                    <i data-lucide="layers" class="text-white w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800 leading-none">Attendance Insights</h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">CubicPlus Administrative</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <div class="relative flex-1 md:w-48">
+                    <i data-lucide="calendar" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="month" id="filterMonth" onchange="loadAdminData()" 
+                        class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                </div>
+                <div class="relative flex-1 md:w-64">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="filterUser" placeholder="ค้นหาชื่อพนักงาน..." onkeyup="loadAdminData()" 
+                        class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                </div>
+                <button onclick="loadAdminData()" class="p-2.5 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors">
+                    <i data-lucide="refresh-cw" class="w-5 h-5 text-slate-500"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6">
+        <!-- Stats Summary (Optional) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="user-check"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Present Today</p>
+                    <h3 id="statPresent" class="text-2xl font-bold text-slate-800">-</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Data -->
+        <div class="table-container bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/50">
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">วันที่ & เวลา</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">พนักงาน</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">ประเภท</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">สรุปงาน (Memo)</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">สถานะ</th>
                         </tr>
                     </thead>
-                    <tbody id="tbody" class="divide-y divide-slate-50"></tbody>
+                    <tbody id="tbody" class="divide-y divide-slate-50">
+                        <!-- Data rows load here -->
+                    </tbody>
                 </table>
-             </div>
+            </div>
+            <div id="loader" class="py-20 text-center hidden">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-indigo-500"></i>
+                <p class="text-sm text-slate-400 mt-2">กำลังดึงข้อมูลจาก Cloud...</p>
+            </div>
+            <div id="noData" class="py-20 text-center hidden">
+                <i data-lucide="folder-open" class="w-10 h-10 mx-auto text-slate-200 mb-2"></i>
+                <p class="text-sm text-slate-400">ไม่พบประวัติในช่วงเวลาที่เลือก</p>
+            </div>
         </div>
     </div>
 
@@ -40,22 +111,81 @@
         async function loadAdminData() {
             const month = document.getElementById('filterMonth').value;
             const target = document.getElementById('filterUser').value;
+            const tbody = document.getElementById('tbody');
+            const loader = document.getElementById('loader');
+            const noData = document.getElementById('noData');
+
+            tbody.innerHTML = '';
+            loader.classList.remove('hidden');
+            noData.classList.add('hidden');
+
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=getHistory&user=admin&month=${month}&targetUser=${target}`);
+                // ส่ง role=admin ไปด้วยเพื่อให้ Apps Script ปลดล็อคการดึงข้อมูลทั้งหมด
+                const res = await fetch(`${SCRIPT_URL}?action=getHistory&role=admin&month=${month}&targetUser=${target}`);
                 const data = await res.json();
-                document.getElementById('tbody').innerHTML = data.reverse().map(item => `
-                    <tr>
-                        <td class="p-5 text-sm">${new Date(item.timestamp).toLocaleDateString('th-TH')}</td>
-                        <td class="p-5 font-bold">${item.name}</td>
-                        <td class="p-5"><span class="${item.type==='เข้างาน'?'text-emerald-500':'text-rose-500'}">${item.type}</span></td>
-                        <td class="p-5 font-bold text-indigo-600">${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</td>
-                    </tr>
-                `).join('');
-            } catch (e) { console.error(e); }
+                
+                loader.classList.add('hidden');
+
+                if (!data || data.length === 0) {
+                    noData.classList.remove('hidden');
+                    return;
+                }
+
+                // สถิติเบื้องต้น (พนักงานที่มาวันนี้)
+                const today = new Date().toDateString();
+                const uniqueUsers = new Set(data.filter(i => new Date(i.timestamp).toDateString() === today).map(i => i.name));
+                document.getElementById('statPresent').innerText = uniqueUsers.size + " คน";
+
+                tbody.innerHTML = data.reverse().map(item => {
+                    const isCheckIn = item.type.includes('เข้า');
+                    const dateObj = new Date(item.timestamp);
+                    
+                    return `
+                        <tr class="transition-colors">
+                            <td class="p-6">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-medium text-slate-700">${dateObj.toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'2-digit'})}</span>
+                                    <span class="text-lg font-bold text-indigo-600">${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</span>
+                                </div>
+                            </td>
+                            <td class="p-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                        ${item.name.charAt(0)}
+                                    </div>
+                                    <span class="font-semibold text-slate-800">${item.name}</span>
+                                </div>
+                            </td>
+                            <td class="p-6">
+                                <span class="px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${isCheckIn ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
+                                    ${item.type}
+                                </span>
+                            </td>
+                            <td class="p-6">
+                                <p class="text-sm text-slate-500 italic font-light memo-badge" title="${item.memo || '-'}">
+                                    ${item.memo ? `"${item.memo}"` : '<span class="text-slate-300">ไม่มีบันทึก</span>'}
+                                </p>
+                            </td>
+                            <td class="p-6 text-right">
+                                <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-bold uppercase tracking-tighter">Verified</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                lucide.createIcons();
+            } catch (e) { 
+                console.error(e);
+                loader.classList.add('hidden');
+                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+            }
         }
+
         window.onload = () => {
-            document.getElementById('filterMonth').value = new Date().toISOString().slice(0, 7);
+            const now = new Date();
+            document.getElementById('filterMonth').value = now.getFullYear() + "-" + ("0" + (now.getMonth() + 1)).slice(-2);
             loadAdminData();
+            lucide.createIcons();
         };
     </script>
 </body>
