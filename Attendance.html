@@ -53,7 +53,6 @@
         .pulse-emerald { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); animation: pulse-e 2s infinite; }
         @keyframes pulse-e { 70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
-        /* Animation for Modal */
         @keyframes modalShow {
             from { opacity: 0; transform: scale(0.95) translateY(10px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
@@ -87,11 +86,11 @@
 
                 <!-- Dual Actions -->
                 <div class="flex gap-6 justify-center">
-                    <button id="btnCheckIn" onclick="recordTime('checkIn', this)" class="action-btn w-full max-w-[180px] py-6 bg-slate-900 text-white rounded-[2rem] shadow-2xl shadow-indigo-200 flex flex-col items-center gap-2 group">
+                    <button id="btnCheckIn" onclick="recordTime('checkIn')" class="action-btn w-full max-w-[180px] py-6 bg-slate-900 text-white rounded-[2rem] shadow-2xl shadow-indigo-200 flex flex-col items-center gap-2 group">
                         <i data-lucide="shield-check" class="w-6 h-6 text-emerald-400 group-hover:scale-110 transition-transform"></i>
                         <span class="text-xs font-medium tracking-widest uppercase">Check In</span>
                     </button>
-                    <button id="btnCheckOut" onclick="recordTime('checkOut', this)" class="action-btn w-full max-w-[180px] py-6 bg-white text-slate-900 border border-slate-100 rounded-[2rem] shadow-xl flex flex-col items-center gap-2 group">
+                    <button id="btnCheckOut" onclick="recordTime('checkOut')" class="action-btn w-full max-w-[180px] py-6 bg-white text-slate-900 border border-slate-100 rounded-[2rem] shadow-xl flex flex-col items-center gap-2 group">
                         <i data-lucide="log-out" class="w-6 h-6 text-rose-500 group-hover:scale-110 transition-transform"></i>
                         <span class="text-xs font-medium tracking-widest uppercase text-slate-400">Check Out</span>
                     </button>
@@ -131,7 +130,7 @@
 
     <!-- Quick Memo Modal -->
     <div id="memoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-6">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeMemo()"></div>
         <div class="glass-panel w-full max-w-sm rounded-[3rem] p-8 relative z-10 shadow-2xl animate-modal">
             <div class="text-center mb-6">
                 <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -153,10 +152,13 @@
     </div>
 
     <script>
+        // *** ใส่ URL ของ Google Apps Script ของคุณที่นี่ ***
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxs6htf33iNyVvOmL88GnAHzzEK665A4Mw6Z9gOWXVpxD0LfDEqqEagDlkRhovPC5KC_g/exec";
+        
         const userLogin = localStorage.getItem('userLogin') || "Administrator";
         document.getElementById('userNameDisplay').innerText = userLogin;
 
+        // --- Clock & Greeting ---
         function updateClock() {
             const now = new Date();
             const hours = now.getHours();
@@ -170,8 +172,8 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- New Memo Logic ---
-        function recordTime(action, btn) {
+        // --- Record Time Logic ---
+        function recordTime(action) {
             if (action === 'checkOut') {
                 document.getElementById('memoModal').classList.remove('hidden');
                 document.getElementById('memoInput').focus();
@@ -203,15 +205,16 @@
             lucide.createIcons();
 
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=${action}&user=${userLogin}&memo=${encodeURIComponent(memo)}`);
-                const data = await res.json();
+                const response = await fetch(`${SCRIPT_URL}?action=${action}&user=${encodeURIComponent(userLogin)}&memo=${encodeURIComponent(memo)}`);
+                const data = await response.json();
+                
                 if (data.status === "success") {
                     loadPersonalToday();
                 } else {
-                    alert(data.message);
+                    alert(data.message || "เกิดข้อผิดพลาด");
                 }
             } catch (e) {
-                alert("Synchronization Error");
+                alert("Synchronization Error: ไม่สามารถเชื่อมต่อฐานข้อมูลได้");
             } finally {
                 btn.disabled = false;
                 btn.style.opacity = '1';
@@ -220,23 +223,24 @@
             }
         }
 
+        // --- History Loader ---
         async function loadPersonalToday() {
             const container = document.getElementById('personalHistory');
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=getHistory&user=${userLogin}`);
+                const res = await fetch(`${SCRIPT_URL}?action=getHistory&user=${encodeURIComponent(userLogin)}`);
                 const data = await res.json();
-                const today = new Date().toDateString();
-                const todayData = data.filter(item => new Date(item.timestamp).toDateString() === today);
+                const todayStr = new Date().toDateString();
+                
+                // กรองเฉพาะของวันนี้ และเรียงจากใหม่ไปเก่า
+                const todayData = data.filter(item => new Date(item.timestamp).toDateString() === todayStr);
 
                 if (!todayData.length) {
                     container.innerHTML = `<div class="text-center py-10 text-slate-300 text-xs italic font-light tracking-widest uppercase">No Journal Entries Found Today</div>`;
                     return;
                 }
 
-                todayData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
                 container.innerHTML = todayData.map(item => {
-                    const isIn = item.type.toLowerCase().includes('in');
+                    const isIn = item.type.includes('เข้า');
                     return `
                         <div class="glass-panel p-5 rounded-[2rem] flex justify-between items-center group hover:bg-white transition-all">
                             <div class="flex items-center gap-5">
@@ -256,14 +260,16 @@
                     `;
                 }).join('');
 
-                const ins = todayData.filter(i => i.type.toLowerCase().includes('in'));
-                const outs = todayData.filter(i => i.type.toLowerCase().includes('out'));
+                // Update Stats
+                const ins = todayData.filter(i => i.type.includes('เข้า'));
+                const outs = todayData.filter(i => i.type.includes('ออก'));
                 if(ins.length) document.getElementById('lastIn').innerText = new Date(ins[ins.length-1].timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
                 if(outs.length) document.getElementById('lastOut').innerText = new Date(outs[0].timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
 
+                // Update Status Bar
                 const statusIndicator = document.getElementById('statusIndicator');
                 const statusText = document.getElementById('statusText');
-                if(todayData[0].type.toLowerCase().includes('in')) {
+                if(todayData[0].type.includes('เข้า')) {
                     statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-emerald";
                     statusText.innerText = "Online - Working";
                     statusText.className = "text-xs font-bold text-emerald-600 uppercase tracking-widest";
