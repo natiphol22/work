@@ -2,61 +2,255 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        
+        /* ซ่อน Scrollbar แต่ยังเลื่อนได้ */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .tab-btn.active {
+            background-color: #0f172a;
+            color: white;
+        }
+        .tab-btn:not(.active) {
+            background-color: transparent;
+            color: #64748b;
+        }
+        .tab-btn:not(.active):hover:not(:disabled) {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+    </style>
 </head>
-<body class="p-6 bg-slate-50 font-['Kanit']">
-    <div class="max-w-5xl mx-auto">
-        <header class="mb-8 flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Attendance Report</h1>
-            <div class="flex gap-2">
-                <input type="month" id="filterMonth" onchange="loadAdminData()" class="p-2 rounded-xl border-none shadow-sm">
-                <input type="text" id="filterUser" placeholder="ชื่อพนักงาน..." onkeyup="loadAdminData()" class="p-2 rounded-xl border-none shadow-sm">
-            </div>
-        </header>
+<body class="bg-slate-50 min-h-screen">
 
-        <div id="adminContent" class="grid grid-cols-1 gap-4">
-             <!-- ส่วนแสดงผลเหมือนที่คุณทำไว้ (Table) -->
-             <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-slate-400 text-xs uppercase">
-                        <tr>
-                            <th class="p-5">วันที่</th>
-                            <th class="p-5">ชื่อ</th>
-                            <th class="p-5">ประเภท</th>
-                            <th class="p-5">เวลา</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody" class="divide-y divide-slate-50"></tbody>
-                </table>
-             </div>
+    <!-- 🌟 Full-Width Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Admin Control Panel</h1>
+                <p class="text-sm text-slate-500 mt-1">จัดการและตรวจสอบข้อมูลพนักงาน</p>
+            </div>
+            
+            <!-- เมนูเลือกฟังก์ชัน -->
+            <div class="flex p-1 bg-slate-100 rounded-2xl w-full md:w-auto overflow-x-auto no-scrollbar">
+                <button onclick="switchTab('attendance')" id="tab-attendance" class="tab-btn active px-6 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all">
+                    ⏰ ตรวจสอบเวลาทำงาน
+                </button>
+                <button disabled class="tab-btn opacity-60 cursor-not-allowed px-6 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all">
+                    📅 อนุมัติวันลา (Coming Soon)
+                </button>
+                <button disabled class="tab-btn opacity-60 cursor-not-allowed px-6 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all">
+                    📝 สรุปงานรายวัน (Coming Soon)
+                </button>
+            </div>
         </div>
-    </div>
+    </nav>
+
+    <!-- 🌟 Main Content Area -->
+    <main class="max-w-6xl mx-auto p-6 mt-4">
+        
+        <!-- ========================================== -->
+        <!-- VIEW 1: หน้ารวมรายชื่อพนักงาน (โหลดครั้งแรก) -->
+        <!-- ========================================== -->
+        <div id="view-user-list">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">เลือกพนักงานที่ต้องการตรวจสอบ</h2>
+            
+            <!-- Loading Spinner (แสดงตอนกำลังดึงรายชื่อ) -->
+            <div id="loadingUsers" class="flex flex-col items-center justify-center py-20 text-slate-400">
+                <svg class="animate-spin h-8 w-8 mb-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <p>กำลังดึงรายชื่อพนักงาน...</p>
+            </div>
+
+            <!-- Grid รายชื่อพนักงาน -->
+            <div id="userGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 hidden">
+                <!-- โค้ด JS จะมาแทรก Card พนักงานที่นี่ -->
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: หน้าตารางรายละเอียดรายบุคคล (ซ่อนไว้ก่อน) -->
+        <!-- ========================================== -->
+        <div id="view-user-details" class="hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div class="flex items-center gap-4">
+                    <button onclick="showUserList()" class="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">ประวัติของ: <span id="currentUserName" class="text-indigo-600"></span></h2>
+                    </div>
+                </div>
+
+                <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 flex">
+                    <input type="month" id="filterMonth" onchange="loadUserHistory()" class="px-4 py-2 rounded-lg border-none text-sm font-medium text-slate-700 bg-transparent focus:outline-none cursor-pointer">
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4 font-semibold">วันที่</th>
+                                <th class="px-6 py-4 font-semibold">ประเภท</th>
+                                <th class="px-6 py-4 font-semibold">เวลาที่บันทึก</th>
+                                <th class="px-6 py-4 font-semibold">วิธีการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody" class="divide-y divide-slate-50">
+                            <!-- ข้อมูลจะถูกดึงมาใส่ตรงนี้ -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Loading Data Spinner -->
+                <div id="loadingData" class="hidden flex-col items-center justify-center py-16 text-slate-400">
+                    <svg class="animate-spin h-8 w-8 mb-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="text-sm">กำลังโหลดข้อมูลการลงเวลา...</p>
+                </div>
+                
+                <!-- State ไม่มีข้อมูล -->
+                <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-slate-400">
+                    <div class="text-4xl mb-3">📄</div>
+                    <p class="text-sm">ไม่พบข้อมูลในเดือนที่เลือก</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxs6htf33iNyVvOmL88GnAHzzEK665A4Mw6Z9gOWXVpxD0LfDEqqEagDlkRhovPC5KC_g/exec";
+        // ⚠️ เอา URL จาก Apps Script ของคุณมาวางตรงนี้
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTUr0CwjDhR2vCKaqkcQlNrwsLXfZlDp9vqpGQSxaktbyV_3dWY1OGvPdRLtFBhYCzWA/exec"; 
+        
+        let selectedUser = "";
 
-        async function loadAdminData() {
-            const month = document.getElementById('filterMonth').value;
-            const target = document.getElementById('filterUser').value;
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=getHistory&user=admin&month=${month}&targetUser=${target}`);
-                const data = await res.json();
-                document.getElementById('tbody').innerHTML = data.reverse().map(item => `
-                    <tr>
-                        <td class="p-5 text-sm">${new Date(item.timestamp).toLocaleDateString('th-TH')}</td>
-                        <td class="p-5 font-bold">${item.name}</td>
-                        <td class="p-5"><span class="${item.type==='เข้างาน'?'text-emerald-500':'text-rose-500'}">${item.type}</span></td>
-                        <td class="p-5 font-bold text-indigo-600">${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</td>
-                    </tr>
-                `).join('');
-            } catch (e) { console.error(e); }
-        }
+        // ทำงานทันทีเมื่อโหลดหน้าเว็บ
         window.onload = () => {
             document.getElementById('filterMonth').value = new Date().toISOString().slice(0, 7);
-            loadAdminData();
+            fetchUserList();
         };
+
+        // 1. ดึงรายชื่อพนักงานทั้งหมดจากฐานข้อมูล (โหลดเร็ว)
+        async function fetchUserList() {
+            const loading = document.getElementById('loadingUsers');
+            const grid = document.getElementById('userGrid');
+            
+            try {
+                // เรียกใช้ action=getUsers ที่เราเพิ่มไว้ใน GAS
+                const res = await fetch(`${SCRIPT_URL}?action=getUsers`);
+                const names = await res.json();
+                
+                // กรองชื่อที่ซ้ำกันออก (ถ้ามี)
+                const uniqueNames = [...new Set(names)];
+
+                grid.innerHTML = uniqueNames.map(name => `
+                    <button onclick="openUserDetails('${name}')" class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 hover:shadow-md hover:border-indigo-200 transition-all text-left group flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                ${name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-slate-800 text-lg">${name}</h3>
+                                <p class="text-xs text-slate-400 mt-1 group-hover:text-indigo-500">คลิกเพื่อดูประวัติ &rarr;</p>
+                            </div>
+                        </div>
+                    </button>
+                `).join('');
+
+                loading.classList.add('hidden');
+                grid.classList.remove('hidden');
+            } catch (e) {
+                console.error(e);
+                loading.innerHTML = `<p class="text-red-500">❌ เกิดข้อผิดพลาดในการดึงข้อมูล กรุณารีเฟรชหน้าเว็บ</p>`;
+            }
+        }
+
+        // 2. เมื่อคลิกเลือกพนักงาน -> สลับหน้าจอและดึงข้อมูลของคนนั้น
+        function openUserDetails(name) {
+            selectedUser = name;
+            document.getElementById('currentUserName').innerText = name;
+            
+            // สลับ View
+            document.getElementById('view-user-list').classList.add('hidden');
+            document.getElementById('view-user-details').classList.remove('hidden');
+            
+            // ล้างข้อมูลตารางเก่า
+            document.getElementById('tbody').innerHTML = "";
+            
+            // ดึงข้อมูล
+            loadUserHistory();
+        }
+
+        // 3. ปุ่มกลับไปหน้ารายชื่อ
+        function showUserList() {
+            document.getElementById('view-user-details').classList.add('hidden');
+            document.getElementById('view-user-list').classList.remove('hidden');
+        }
+
+        // 4. ดึงข้อมูลประวัติ (เฉพาะคนที่เลือก)
+        async function loadUserHistory() {
+            const month = document.getElementById('filterMonth').value;
+            const tbody = document.getElementById('tbody');
+            const loadingData = document.getElementById('loadingData');
+            const emptyState = document.getElementById('emptyState');
+            
+            tbody.innerHTML = "";
+            emptyState.classList.add('hidden');
+            loadingData.classList.remove('hidden');
+            loadingData.classList.add('flex');
+
+            try {
+                // ส่ง targetUser ไปเพื่อกรองเฉพาะคนที่เราเลือก
+                const res = await fetch(`${SCRIPT_URL}?action=getHistory&role=admin&targetUser=${encodeURIComponent(selectedUser)}&month=${month}`);
+                const data = await res.json();
+                
+                loadingData.classList.add('hidden');
+                loadingData.classList.remove('flex');
+
+                if (data.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                    return;
+                }
+
+                tbody.innerHTML = data.reverse().map(item => {
+                    const dateObj = new Date(item.timestamp);
+                    const dateStr = dateObj.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+                    const timeStr = dateObj.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
+                    const isCheckIn = item.type === 'เข้างาน';
+
+                    return `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 text-sm text-slate-700">${dateStr}</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${isCheckIn ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                    ${item.type}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 font-bold text-slate-800">${timeStr} น.</td>
+                            <td class="px-6 py-4 text-sm text-slate-500">${item.method || 'Online'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) { 
+                console.error(e); 
+                loadingData.innerHTML = `<p class="text-red-500 py-10">❌ ดึงข้อมูลล้มเหลว</p>`;
+            }
+        }
+
+        // ฟังก์ชันจำลองสำหรับการเปลี่ยน Tab เมนู
+        function switchTab(tabId) {
+            // ปัจจุบันมีแค่ Tab เดียวที่ใช้งานได้ คือ attendance 
+            // โค้ดนี้เตรียมไว้สำหรับขยายผลในอนาคต
+            console.log("Switched to tab:", tabId);
+        }
     </script>
 </body>
 </html>
