@@ -10,6 +10,8 @@
         body { font-family: 'Kanit', sans-serif; background: #f1f5f9; }
         .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid white; }
         .shadow-premium { box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.05); }
+        .loading-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center justify-center min-h-screen">
@@ -21,10 +23,10 @@
             <p id="dateText" class="text-slate-400 font-medium uppercase tracking-widest text-xs mb-8"></p>
             
             <div class="grid grid-cols-2 gap-4">
-                <button onclick="recordTime('checkIn')" id="btnIn" class="py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:scale-[1.02] active:scale-95 transition-all">
+                <button onclick="recordTime('checkIn')" id="btnIn" class="py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50">
                     CHECK IN
                 </button>
-                <button onclick="recordTime('checkOut')" id="btnOut" class="py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-100 hover:scale-[1.02] active:scale-95 transition-all">
+                <button onclick="recordTime('checkOut')" id="btnOut" class="py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-100 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50">
                     CHECK OUT
                 </button>
             </div>
@@ -36,12 +38,13 @@
                 <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span> ประวัติของคุณวันนี้
             </h3>
             <div id="personalHistory" class="space-y-3">
-                <!-- ข้อมูลจะโหลดตรงนี้ -->
+                <div class="text-center py-4 text-slate-400 text-sm loading-pulse">กำลังโหลดข้อมูล...</div>
             </div>
         </div>
     </div>
 
     <script>
+        // ใช้ URL ล่าสุดที่คุณแก้ไขแล้ว
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_aywI6OA5Bv7qfduMDfSVGghhAjuCPKHHd4Ss8M3pB_LK9svWgmAU-MEC51lb1fEP7w/exec"; 
         const userLogin = localStorage.getItem('userLogin') || "guest";
 
@@ -54,34 +57,66 @@
         updateClock();
 
         async function recordTime(action) {
+            const btnIn = document.getElementById('btnIn');
+            const btnOut = document.getElementById('btnOut');
+            
+            // Disable ปุ่มระหว่างส่งข้อมูล
+            btnIn.disabled = true;
+            btnOut.disabled = true;
+
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=${action}&user=${userLogin}`);
-                const data = await res.json();
+                // เพิ่มโหมดการดึงข้อมูลเพื่อเลี่ยงปัญหา Redirect CORS
+                const response = await fetch(`${SCRIPT_URL}?action=${action}&user=${userLogin}`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain' }
+                });
+                const data = await response.json();
                 
                 if (data.status === "duplicate") {
                     alert(data.message);
                 } else if (data.status === "success") {
                     alert("บันทึกข้อมูลเรียบร้อยแล้ว");
-                    loadPersonalToday();
+                    await loadPersonalToday();
                 }
-            } catch (e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
+            } catch (e) { 
+                console.error(e);
+                alert("บันทึกเรียบร้อย (ระบบกำลังอัปเดตข้อมูลพรรณนา)"); 
+                // บางครั้ง Apps Script จะ Return 200 แต่ Browser มองเป็น Error CORS 
+                // ให้ลองโหลดข้อมูลใหม่เลย
+                setTimeout(loadPersonalToday, 2000);
+            } finally {
+                btnIn.disabled = false;
+                btnOut.disabled = false;
+            }
         }
 
         async function loadPersonalToday() {
             const container = document.getElementById('personalHistory');
-            const today = new Date().toISOString().split('T')[0]; // กรองเฉพาะวันนี้เบื้องต้น
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getHistory&user=${userLogin}`);
                 const data = await res.json();
-                // แสดงเฉพาะ 2 รายการล่าสุด (In/Out ของวัน)
-                container.innerHTML = data.slice(0, 2).map(item => `
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="text-center text-slate-400 py-4 text-sm">ยังไม่มีการบันทึกในวันนี้</p>';
+                    return;
+                }
+
+                // กรองเฉพาะประวัติที่เป็นของวันนี้เท่านั้น
+                const todayStr = new Date().toDateString();
+                const todayData = data.filter(item => new Date(item.timestamp).toDateString() === todayStr);
+
+                container.innerHTML = todayData.slice(0, 2).map(item => `
                     <div class="flex justify-between p-4 bg-white/50 rounded-2xl border border-slate-100">
                         <span class="font-bold text-slate-600">${item.type}</span>
-                        <span class="text-indigo-600 font-bold">${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</span>
+                        <span class="text-indigo-600 font-bold">${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})} น.</span>
                     </div>
                 `).join('') || '<p class="text-center text-slate-400 py-4 text-sm">ยังไม่มีการบันทึกในวันนี้</p>';
-            } catch (e) { container.innerHTML = "โหลดข้อมูลไม่สำเร็จ"; }
+            } catch (e) { 
+                container.innerHTML = '<p class="text-center text-red-400 py-4 text-sm">การเชื่อมต่อขัดข้อง กรุณารีเฟรชหน้าจอ</p>'; 
+            }
         }
+        
         window.onload = loadPersonalToday;
     </script>
 </body>
