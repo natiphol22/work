@@ -3,124 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubicPlus | Attendance</title>
+    <title>CubicPlus | Check-In</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Plus+Jakarta+Sans:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif; background: #f8fafc; }
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,1); }
-        .btn-checkin { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .btn-checkout { background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); }
+        body { font-family: 'Kanit', sans-serif; background: #f1f5f9; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid white; }
+        .shadow-premium { box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.05); }
     </style>
 </head>
-<body class="p-4 sm:p-8 min-h-screen flex flex-col items-center">
+<body class="p-4 flex flex-col items-center justify-center min-h-screen">
 
     <div class="w-full max-w-md space-y-6">
-        <!-- Digital Clock Section -->
-        <div class="glass-card rounded-[2.5rem] p-8 text-center shadow-xl shadow-indigo-100/50">
-            <h1 id="clock" class="text-5xl font-bold text-slate-800 tracking-tighter mb-2">00:00:00</h1>
-            <p id="dateText" class="text-slate-400 text-sm font-medium uppercase tracking-widest"></p>
+        <!-- Clock Card -->
+        <div class="glass rounded-[2.5rem] p-10 text-center shadow-premium">
+            <h1 id="clock" class="text-5xl font-bold text-slate-800 mb-2">00:00:00</h1>
+            <p id="dateText" class="text-slate-400 font-medium uppercase tracking-widest text-xs mb-8"></p>
             
-            <div class="grid grid-cols-2 gap-4 mt-8">
-                <button onclick="recordTime('checkIn')" class="btn-checkin py-4 text-white rounded-2xl font-bold shadow-lg shadow-emerald-200 active:scale-95 transition-all">
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="recordTime('checkIn')" id="btnIn" class="py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:scale-[1.02] active:scale-95 transition-all">
                     CHECK IN
                 </button>
-                <button onclick="recordTime('checkOut')" class="btn-checkout py-4 text-white rounded-2xl font-bold shadow-lg shadow-rose-200 active:scale-95 transition-all">
+                <button onclick="recordTime('checkOut')" id="btnOut" class="py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-100 hover:scale-[1.02] active:scale-95 transition-all">
                     CHECK OUT
                 </button>
             </div>
         </div>
 
-        <!-- History Section -->
-        <div class="glass-card rounded-[2.5rem] p-6 shadow-lg">
-            <div class="flex justify-between items-center mb-6 px-2">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                    <span class="w-2 h-5 bg-indigo-500 rounded-full"></span>
-                    ประวัติการลงเวลา
-                </h3>
-                <span id="roleBadge" class="text-[10px] bg-slate-100 text-slate-500 px-3 py-1 rounded-full font-bold uppercase">User</span>
-            </div>
-
-            <div id="historyContainer" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+        <!-- Personal History Card -->
+        <div class="glass rounded-[2.5rem] p-6 shadow-premium">
+            <h3 class="font-bold text-slate-800 mb-4 px-2 flex items-center gap-2">
+                <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span> ประวัติของคุณวันนี้
+            </h3>
+            <div id="personalHistory" class="space-y-3">
                 <!-- ข้อมูลจะโหลดตรงนี้ -->
-                <div class="text-center py-10 opacity-30">กำลังโหลดประวัติ...</div>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. นำ URL จากการ Deploy มาใส่ที่นี่
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWd5TWpljxkyL1mUzzXNPNBe3KhYgRrC2frQVTWbC3Q8Z4swUuOZYvr0Lcs5Alv6dk0w/exec"; 
+        const SCRIPT_URL = "ใส่_URL_ของ_APPS_SCRIPT_ตรงนี้"; 
         const userLogin = localStorage.getItem('userLogin') || "guest";
 
-        // ระบบนาฬิกา
-        function updateTime() {
+        function updateClock() {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
-            document.getElementById('dateText').innerText = now.toLocaleDateString('th-TH', { 
-                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
-            });
+            document.getElementById('dateText').innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' });
         }
-        setInterval(updateTime, 1000);
-        updateTime();
+        setInterval(updateClock, 1000);
+        updateClock();
 
-        // บันทึกเวลา
         async function recordTime(action) {
-            if(!confirm(`ยืนยันการลงเวลา?`)) return;
-            
-            const container = document.getElementById('historyContainer');
-            container.innerHTML = '<div class="text-center py-10 animate-pulse text-indigo-500 font-bold">กำลังบันทึกข้อมูล...</div>';
-
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=${action}&user=${userLogin}`);
-                const data = await response.json();
-                if(data.status === 'success') {
-                    loadHistory();
-                }
-            } catch (error) {
-                alert("การเชื่อมต่อขัดข้อง");
-                loadHistory();
-            }
-        }
-
-        // โหลดประวัติ
-        async function loadHistory() {
-            const container = document.getElementById('historyContainer');
-            if(userLogin === 'admin') document.getElementById('roleBadge').innerText = "Administrator";
-
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=getHistory&user=${userLogin}`);
-                const data = await response.json();
+                const res = await fetch(`${SCRIPT_URL}?action=${action}&user=${userLogin}`);
+                const data = await res.json();
                 
-                if(data.length === 0) {
-                    container.innerHTML = '<div class="text-center py-10 text-slate-400">ไม่พบประวัติการลงเวลา</div>';
-                    return;
+                if (data.status === "duplicate") {
+                    alert(data.message);
+                } else if (data.status === "success") {
+                    alert("บันทึกข้อมูลเรียบร้อยแล้ว");
+                    loadPersonalToday();
                 }
-
-                container.innerHTML = data.reverse().map(item => `
-                    <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-50 shadow-sm">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg ${item.type === 'เข้างาน' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
-                                ${item.type === 'เข้างาน' ? '↳' : '↲'}
-                            </div>
-                            <div>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase">${new Date(item.timestamp).toLocaleDateString('th-TH')}</p>
-                                <p class="font-bold text-slate-700 text-sm">${userLogin === 'admin' ? item.name : 'บันทึก'} ${item.type}</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-lg font-bold text-slate-800">
-                                ${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'})}
-                            </p>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (e) {
-                container.innerHTML = '<div class="text-center py-10 text-red-400">โหลดข้อมูลไม่สำเร็จ</div>';
-            }
+            } catch (e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
         }
 
-        window.onload = loadHistory;
+        async function loadPersonalToday() {
+            const container = document.getElementById('personalHistory');
+            const today = new Date().toISOString().split('T')[0]; // กรองเฉพาะวันนี้เบื้องต้น
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getHistory&user=${userLogin}`);
+                const data = await res.json();
+                // แสดงเฉพาะ 2 รายการล่าสุด (In/Out ของวัน)
+                container.innerHTML = data.slice(0, 2).map(item => `
+                    <div class="flex justify-between p-4 bg-white/50 rounded-2xl border border-slate-100">
+                        <span class="font-bold text-slate-600">${item.type}</span>
+                        <span class="text-indigo-600 font-bold">${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</span>
+                    </div>
+                `).join('') || '<p class="text-center text-slate-400 py-4 text-sm">ยังไม่มีการบันทึกในวันนี้</p>';
+            } catch (e) { container.innerHTML = "โหลดข้อมูลไม่สำเร็จ"; }
+        }
+        window.onload = loadPersonalToday;
     </script>
 </body>
 </html>
