@@ -247,7 +247,15 @@
             <p class="text-slate-400 text-sm leading-relaxed">จัดการแปลงไฟล์เอกสารให้เป็นรูปภาพ JPG</p>
         </div>
 
-    
+    <!-- 8. Admin Card (ปรับปรุงใหม่) -->
+<div id="adminCard" onclick="goToAdmin()" class="premium-card p-8 rounded-[2rem] border-2 border-transparent bg-white shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all cursor-pointer group">
+    <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⚙️</div>
+    <h3 class="text-xl font-bold mb-2 text-slate-800">Admin Report</h3>
+    <p class="text-slate-400 text-sm">ตรวจสอบและกรองข้อมูลการลงเวลาพนักงาน</p>
+    <div id="adminBadge" class="mt-4 inline-block px-3 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-bold rounded-full uppercase tracking-wider">
+        สิทธิ์เฉพาะผู้ดูแล
+    </div>
+</div>
         
         <div class="mt-4 flex gap-2">
             <span class="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded-full uppercase">Report</span>
@@ -345,6 +353,32 @@
             document.body.style.overflow = 'auto';
         }, 500);
     }
+    function checkAdminAccess() {
+    const role = localStorage.getItem('userRole'); // ดึง Role จากตอน Login
+    const adminCard = document.getElementById('adminCard');
+    const adminBadge = document.getElementById('adminBadge');
+
+    if (role !== 'admin') {
+        // ถ้าไม่ใช่ Admin ให้ทำให้ Card ดูเหมือนกดไม่ได้
+        adminCard.style.opacity = "0.5";
+        adminCard.style.cursor = "not-allowed";
+        adminCard.onclick = null;
+        adminBadge.innerText = "จำกัดสิทธิ์เฉพาะ Admin";
+        adminBadge.className = "mt-4 inline-block px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-bold rounded-full";
+    }
+}
+
+function goToAdmin() {
+    const role = localStorage.getItem('userRole');
+    if (role === 'admin') {
+        window.location.href = 'Admin.html'; // ลิงก์ไปยังชื่อไฟล์หน้า Admin ของคุณ
+    } else {
+        alert("คุณไม่มีสิทธิ์เข้าถึงหน้านี้");
+    }
+}
+
+// เรียกใช้งานเมื่อโหลดหน้า Dashboard
+window.addEventListener('load', checkAdminAccess);
 </script>
 
 </body>
