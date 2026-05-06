@@ -247,13 +247,34 @@
             <p class="text-slate-400 text-sm leading-relaxed">จัดการแปลงไฟล์เอกสารให้เป็นรูปภาพ JPG</p>
         </div>
 
-        <!-- 8. Admin -->
-        <div class="premium-card disabled p-8 rounded-[2rem] border-dashed border-2 border-slate-200">
-            <div class="w-14 h-14 bg-slate-100 rounded-2xl mb-6 flex items-center justify-center text-2xl">⚙️</div>
-            <h3 class="text-xl font-bold mb-2 text-slate-800">Admin</h3>
-            <p class="text-indigo-500 text-xs font-semibold tracking-wider">*กำลังพัฒนาระบบ</p>
+        <a href="Admin.html" class="block group">
+    <div class="premium-card p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-100/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+        <!-- แถบสีด้านข้างเพื่อความพรีเมียม -->
+        <div class="absolute top-0 left-0 w-1.5 h-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        
+        <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
+            ⚙️
+        </div>
+        
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="text-xl font-bold mb-2 text-slate-800">Admin Portal</h3>
+                <p class="text-slate-400 text-xs">จัดการข้อมูลและสรุปผลรายเดือน</p>
+            </div>
+            <!-- ลูกศรชี้ให้รู้ว่ากดได้ -->
+            <div class="text-indigo-400 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="id17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+            </div>
+        </div>
+        
+        <div class="mt-4 flex gap-2">
+            <span class="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded-full uppercase">Report</span>
+            <span class="px-3 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold rounded-full uppercase">Management</span>
         </div>
     </div>
+</a>
 
     <footer class="mt-20 text-center text-slate-400 text-xs tracking-widest uppercase opacity-50">
         © 2026 Executive Business Portal • Version 2.0
