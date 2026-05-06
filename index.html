@@ -17,173 +17,231 @@
 
         body { 
             font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif;
-            background: #fdfeff;
+            background: #f8fafc;
             color: #1e293b;
             overflow-x: hidden;
-            letter-spacing: -0.01em;
         }
 
+        /* 🌌 ผสาน Mesh Background ให้เนียนขึ้น */
         .bg-mesh {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #ffffff;
+            background-color: #f8fafc;
             background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.05) 0px, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.05) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 40%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 40%),
+                radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 40%);
             z-index: -1;
         }
 
+        /* ✨ Premium Glass Card */
         .premium-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.04);
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.03);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .premium-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            background: rgba(255, 255, 255, 1);
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
-            border-color: var(--accent);
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
         }
 
+        /* 🤖 AI Card Glow */
         .ai-card {
-            background: linear-gradient(white, white) padding-box,
-                        var(--ai-gradient) border-box;
-            border: 2px solid transparent;
+            position: relative;
+            background: linear-gradient(white, white) padding-box, var(--ai-gradient) border-box;
+            border: 1px solid transparent;
+        }
+        
+        .ai-card::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: var(--ai-gradient);
+            z-index: -1;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .ai-card:hover::after { opacity: 0.15; }
+
+        /* ⌨️ Input Styling */
+        .premium-input {
+            transition: all 0.3s ease;
+            border: 1.5px solid #f1f5f9;
+        }
+        .premium-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            background: white;
         }
 
+        /* 🖼️ Full Page Viewer */
         #fullPageViewer {
             position: fixed;
             inset: 0;
-            background: #ffffff;
+            background: #fff;
             z-index: 100;
-            transform: translateY(100%);
+            transform: scale(0.95) translateY(20px);
             opacity: 0;
             pointer-events: none;
             transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 24px;
+            margin: 10px;
+            overflow: hidden;
         }
 
         #fullPageViewer.active {
-            transform: translateY(0);
+            transform: scale(1) translateY(0);
             opacity: 1;
             pointer-events: auto;
+            margin: 0;
+            border-radius: 0;
         }
 
         .btn-back-float {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 24px;
+            left: 24px;
             z-index: 110;
-            width: 48px;
-            height: 48px;
+            padding: 12px 20px;
+            background: rgba(15, 23, 42, 0.9);
+            color: white;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
-            justify-content: center;
-            background: rgba(15, 23, 42, 0.85);
-            color: white;
-            border-radius: 16px;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
+            gap: 8px;
+            font-weight: 500;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            transition: all 0.3s;
         }
-
         .btn-back-float:hover {
-            transform: scale(1.1) rotate(-5deg);
+            transform: translateX(5px);
             background: #000;
         }
 
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in { animation: fadeIn 0.8s ease forwards; }
     </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
 
 <div class="bg-mesh"></div>
 
 <!-- 🔑 LOGIN SECTION -->
-<div id="loginSection" class="w-full max-w-[400px] animate-fade-in">
-    <div class="premium-card rounded-[3rem] p-12 text-center shadow-2xl">
+<div id="loginSection" class="w-full max-w-[420px] fade-in">
+    <div class="premium-card rounded-[2.5rem] p-10 text-center shadow-2xl border border-white/50">
+        <!-- 📸 Logo Space -->
         <div class="mb-8 flex justify-center">
-            <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-xl">P</div>
+            <div class="relative">
+                <div class="absolute inset-0 bg-indigo-500 blur-2xl opacity-20 rounded-full"></div>
+                <img src="logo.png" alt="Logo" class="relative w-24 h-24 object-contain drop-shadow-md">
+            </div>
         </div>
-        <h1 class="text-3xl font-bold tracking-tight text-slate-900 mb-2">Portal</h1>
-        <p class="text-slate-400 mb-8 text-sm uppercase tracking-widest">Executive Access</p>
+        
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900 mb-1">Executive Portal</h1>
+        <p class="text-slate-400 mb-10 text-xs uppercase tracking-[0.2em] font-medium">Verified Access Only</p>
 
-        <div class="space-y-4">
-            <input id="user" type="text" placeholder="Username" 
-                onkeypress="if(event.key === 'Enter') document.getElementById('pass').focus()"
-                class="w-full px-6 py-4 rounded-2xl bg-slate-50/50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all">
+        <div class="space-y-4 text-left">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-2 ml-4 uppercase tracking-wider">Username</label>
+                <input id="user" type="text" placeholder="Enter username" 
+                    onkeypress="if(event.key === 'Enter') document.getElementById('pass').focus()"
+                    class="premium-input w-full px-6 py-4 rounded-2xl bg-slate-50 focus:outline-none">
+            </div>
             
-            <input id="pass" type="password" placeholder="Password" 
-                onkeypress="if(event.key === 'Enter') handleLogin()"
-                class="w-full px-6 py-4 rounded-2xl bg-slate-50/50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-2 ml-4 uppercase tracking-wider">Password</label>
+                <input id="pass" type="password" placeholder="••••••••" 
+                    onkeypress="if(event.key === 'Enter') handleLogin()"
+                    class="premium-input w-full px-6 py-4 rounded-2xl bg-slate-50 focus:outline-none">
+            </div>
             
-            <button id="loginBtn" onclick="handleLogin()" class="w-full py-4 mt-4 bg-slate-900 text-white rounded-2xl font-semibold tracking-wide hover:bg-slate-800 transition-all active:scale-95 shadow-lg">
-                Sign In
+            <button id="loginBtn" onclick="handleLogin()" class="w-full py-4 mt-6 bg-slate-900 text-white rounded-2xl font-bold tracking-wide hover:bg-indigo-600 transition-all active:scale-[0.98] shadow-xl shadow-indigo-200/50">
+                Sign In to Dashboard
             </button>
         </div>
     </div>
 </div>
 
 <!-- 📊 DASHBOARD SECTION -->
-<div id="welcomeSection" class="hidden w-full max-w-6xl animate-fade-in px-4">
-    <header class="flex justify-between items-end mb-10">
-        <div>
-            <h2 id="welcomeMsg" class="text-4xl font-bold text-slate-900 tracking-tight"></h2>
-            <p class="text-slate-500 mt-2 text-lg">จัดการระบบและข้อมูลของคุณที่นี่</p>
+<div id="welcomeSection" class="hidden w-full max-w-6xl fade-in">
+    <header class="flex justify-between items-center mb-12">
+        <div class="flex items-center gap-5">
+            <img src="logo.png" alt="Logo" class="w-12 h-12 object-contain">
+            <div>
+                <h2 id="welcomeMsg" class="text-3xl font-bold text-slate-900 tracking-tight"></h2>
+                <div class="flex items-center gap-2 text-slate-500 text-sm">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    ระบบพร้อมใช้งาน
+                </div>
+            </div>
         </div>
-        <button onclick="handleLogout()" class="w-12 h-12 flex items-center justify-center rounded-full border border-slate-200 hover:bg-red-50 hover:text-red-500 transition-all shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        <button onclick="handleLogout()" class="group flex items-center gap-3 px-5 py-3 rounded-2xl border border-slate-200 hover:bg-red-50 hover:border-red-100 transition-all">
+            <span class="text-sm font-semibold text-slate-600 group-hover:text-red-500">ออกจากระบบ</span>
+            <div class="text-slate-400 group-hover:text-red-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </div>
         </button>
     </header>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> <!-- Adjusted to lg:grid-cols-4 -->
-        <div onclick="openFullPage('Form.html')" class="premium-card p-8 rounded-[2.5rem] cursor-pointer group">
-            <div class="w-12 h-12 bg-blue-50 rounded-xl mb-6 flex items-center justify-center text-xl group-hover:bg-blue-500 group-hover:text-white transition-all">💰</div>
-            <h3 class="text-lg font-bold mb-1 text-slate-800">เบิกค่าใช้จ่าย</h3>
-            <p class="text-slate-400 text-sm">ส่งคำขอเบิกงบประมาณ</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- Card 1 -->
+        <div onclick="openFullPage('Form.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
+            <div class="w-14 h-14 bg-blue-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">💰</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">เบิกค่าใช้จ่าย</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">ยื่นคำขอเบิกงบประมาณและค่าใช้จ่ายบริษัท</p>
         </div>
 
-        <div onclick="openFullPage('oil.html')" class="premium-card p-8 rounded-[2.5rem] cursor-pointer group">
-            <div class="w-12 h-12 bg-orange-50 rounded-xl mb-6 flex items-center justify-center text-xl group-hover:bg-orange-500 group-hover:text-white transition-all">⛽</div>
-            <h3 class="text-lg font-bold mb-1 text-slate-800">คำนวณน้ำมัน</h3>
-            <p class="text-slate-400 text-sm">คำนวณอัตราสิ้นเปลือง</p>
+        <!-- Card 2 -->
+        <div onclick="openFullPage('oil.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
+            <div class="w-14 h-14 bg-orange-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 shadow-sm">⛽</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">คำนวณน้ำมัน</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">ระบบบันทึกและคำนวณอัตราสิ้นเปลืองน้ำมัน</p>
         </div>
 
-        <div onclick="openFullPage('PDFtoJPG.html')" class="premium-card p-8 rounded-[2.5rem] cursor-pointer group">
-            <div class="w-12 h-12 bg-emerald-50 rounded-xl mb-6 flex items-center justify-center text-xl group-hover:bg-emerald-500 group-hover:text-white transition-all">📄</div>
-            <h3 class="text-lg font-bold mb-1 text-slate-800">แปลงไฟล์ PDF</h3>
-            <p class="text-slate-400 text-sm">เปลี่ยน PDF เป็นรูปภาพ</p>
+        <!-- Card 3 -->
+        <div onclick="openFullPage('PDFtoJPG.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
+            <div class="w-14 h-14 bg-emerald-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-sm">📄</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">แปลงไฟล์ PDF</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">จัดการแปลงไฟล์เอกสารให้เป็นรูปภาพ JPG</p>
         </div>
 
-        <div onclick="openFullPage('Ai.html')" class="premium-card ai-card p-8 rounded-[2.5rem] cursor-pointer group">
-            <div class="w-12 h-12 bg-indigo-50 rounded-xl mb-6 flex items-center justify-center text-xl group-hover:bg-indigo-500 group-hover:text-white transition-all">🤖</div>
-            <h3 class="text-lg font-bold mb-1 text-slate-800">AI Assistant</h3>
-            <p class="text-slate-400 text-sm">ตรวจสอบประกัน ARS</p>
+        <!-- Card 4 (AI) -->
+        <div onclick="openFullPage('Ai.html')" class="premium-card ai-card p-8 rounded-[2rem] cursor-pointer group">
+            <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm">🤖</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">AI Assistant</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">ตรวจสอบประกัน ARS และผู้ช่วยส่วนตัว</p>
         </div>
     </div>
+
+    <footer class="mt-20 text-center text-slate-400 text-xs tracking-widest uppercase opacity-50">
+        © 2026 Executive Business Portal • Version 2.0
+    </footer>
 </div>
 
+<!-- 🖥️ VIEWER MODAL -->
 <div id="fullPageViewer">
-    <div onclick="closeFullPage()" class="btn-back-float">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    <div onclick="closeFullPage()" class="btn-back-float cursor-pointer hover:scale-105 active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        <span>กลับหน้าหลัก</span>
     </div>
-    <iframe id="mainIframe" class="w-full h-full border-none shadow-inner"></iframe>
+    <iframe id="mainIframe" class="w-full h-full border-none"></iframe>
 </div>
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTUr0CwjDhR2vCKaqkcQlNrwsLXfZlDp9vqpGQSxaktbyV_3dWY1OGvPdRLtFBhYCzWA/exec";
 
-    // 🕒 1. Check Login State on Load (ป้องกันการเด้งออกเวลา Refresh)
     window.onload = function() {
         const savedUser = localStorage.getItem('isLoggedIn');
         const savedName = localStorage.getItem('userName');
@@ -199,7 +257,7 @@
 
         if(!user || !pass) return alert("กรุณาระบุข้อมูลให้ครบถ้วน");
 
-        btn.innerText = "Checking...";
+        btn.innerText = "กำลังยืนยันตัวตน...";
         btn.disabled = true;
 
         try {
@@ -208,21 +266,18 @@
 
             if(data.status === "success" || data.result === "success") {
                 const displayName = data.name || user;
-                // 💾 2. Save Session
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('userName', displayName);
                 localStorage.setItem('userLogin', user); 
-                
                 showDashboard(displayName);
             } else {
-                alert(data.message || "Username หรือ Password ไม่ถูกต้อง");
-                btn.innerText = "Sign In";
+                alert(data.message || "ข้อมูลไม่ถูกต้อง");
+                btn.innerText = "Sign In to Dashboard";
                 btn.disabled = false;
             }
         } catch (error) {
-            console.error("Login Error:", error);
-            alert("ไม่สามารถเชื่อมต่อระบบ Login ได้");
-            btn.innerText = "Sign In";
+            alert("การเชื่อมต่อล้มเหลว");
+            btn.innerText = "Sign In to Dashboard";
             btn.disabled = false;
         }
     }
@@ -231,9 +286,7 @@
         const loginSec = document.getElementById('loginSection');
         const welcomeSec = document.getElementById('welcomeSection');
         
-        loginSec.style.opacity = '0';
-        loginSec.style.transform = 'scale(0.9)';
-        
+        loginSec.classList.add('opacity-0');
         setTimeout(() => {
             loginSec.classList.add('hidden');
             welcomeSec.classList.remove('hidden');
@@ -241,7 +294,6 @@
         }, 400);
     }
 
-    // 🚪 Logout Function
     function handleLogout() {
         localStorage.clear();
         location.reload();
@@ -250,7 +302,6 @@
     function openFullPage(url){
         const user = localStorage.getItem('userLogin') || "Guest";
         const finalUrl = url.includes('?') ? `${url}&user=${user}` : `${url}?user=${user}`;
-        
         document.getElementById('mainIframe').src = finalUrl;
         document.getElementById('fullPageViewer').classList.add('active');
         document.body.style.overflow = 'hidden';
