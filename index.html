@@ -176,7 +176,7 @@
 
 <!-- 📊 DASHBOARD SECTION -->
 <div id="welcomeSection" class="hidden w-full max-w-6xl fade-in">
-    <header class="flex justify-between items-center mb-12">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
         <div class="flex items-center gap-5">
             <img src="LOGO.png" alt="Logo" class="w-12 h-12 object-contain">
             <div>
@@ -196,7 +196,6 @@
     </header>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <!-- แถวที่ 1 -->
         <!-- 1. AI Assistant -->
         <div onclick="openFullPage('Ai.html')" class="premium-card ai-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm">🤖</div>
@@ -204,12 +203,12 @@
             <p class="text-slate-400 text-sm leading-relaxed">ตรวจสอบประกัน ARS และผู้ช่วยส่วนตัว</p>
         </div>
 
-     <!-- 2. ลงเวลางาน (อัปเดตใหม่) -->
-<div onclick="openFullPage('Attendance.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
-    <div class="w-14 h-14 bg-emerald-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm">⏰</div>
-    <h3 class="text-xl font-bold mb-2 text-slate-800">ลงเวลางาน</h3>
-    <p class="text-slate-400 text-sm leading-relaxed">เช็คอิน-เช็คเอาท์ออนไลน์ พร้อมระบุตำแหน่ง</p>
-</div>
+        <!-- 2. ลงเวลางาน -->
+        <div onclick="openFullPage('Attendance.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
+            <div class="w-14 h-14 bg-emerald-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm">⏰</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">ลงเวลางาน</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">เช็คอิน-เช็คเอาท์ออนไลน์ พร้อมระบุตำแหน่ง</p>
+        </div>
 
         <!-- 3. ปฏิทินวันหยุดวันลา -->
         <div class="premium-card disabled p-8 rounded-[2rem]">
@@ -225,7 +224,6 @@
             <p class="text-indigo-500 text-xs font-semibold tracking-wider">*กำลังพัฒนาระบบ</p>
         </div>
 
-        <!-- แถวที่ 2 -->
         <!-- 5. เบิกค่าใช้จ่าย -->
         <div onclick="openFullPage('Form.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-blue-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">💰</div>
@@ -247,22 +245,16 @@
             <p class="text-slate-400 text-sm leading-relaxed">จัดการแปลงไฟล์เอกสารให้เป็นรูปภาพ JPG</p>
         </div>
 
-    <!-- 8. Admin Card (ปรับปรุงใหม่) -->
-<div id="adminCard" onclick="goToAdmin()" class="premium-card p-8 rounded-[2rem] border-2 border-transparent bg-white shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all cursor-pointer group">
-    <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⚙️</div>
-    <h3 class="text-xl font-bold mb-2 text-slate-800">Admin Report</h3>
-    <p class="text-slate-400 text-sm">ตรวจสอบและกรองข้อมูลการลงเวลาพนักงาน</p>
-    <div id="adminBadge" class="mt-4 inline-block px-3 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-bold rounded-full uppercase tracking-wider">
-        สิทธิ์เฉพาะผู้ดูแล
-    </div>
-</div>
-        
-        <div class="mt-4 flex gap-2">
-            <span class="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded-full uppercase">Report</span>
-            <span class="px-3 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold rounded-full uppercase">Management</span>
+        <!-- 8. Admin Card -->
+        <div id="adminCard" onclick="goToAdmin()" class="premium-card p-8 rounded-[2rem] border-2 border-transparent bg-white shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all cursor-pointer group">
+            <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⚙️</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">Admin Report</h3>
+            <p class="text-slate-400 text-sm">ตรวจสอบและกรองข้อมูลการลงเวลาพนักงาน</p>
+            <div id="adminBadge" class="mt-4 inline-block px-3 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                สิทธิ์เฉพาะผู้ดูแล
+            </div>
         </div>
     </div>
-</a>
 
     <footer class="mt-20 text-center text-slate-400 text-xs tracking-widest uppercase opacity-50">
         © 2026 Executive Business Portal • Version 2.0
@@ -286,6 +278,7 @@
         const savedName = localStorage.getItem('userName');
         if (savedUser === 'true') {
             showDashboard(savedName);
+            checkAdminAccess(); // ตรวจสอบสิทธิ์ทันทีเมื่อโหลดหน้า
         }
     };
 
@@ -305,10 +298,14 @@
 
             if(data.status === "success" || data.result === "success") {
                 const displayName = data.name || user;
+                // บันทึกข้อมูลลง LocalStorage ตามข้อมูลจาก Google Sheets
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('userName', displayName);
                 localStorage.setItem('userLogin', user); 
+                localStorage.setItem('userRole', data.role || "Staff"); // บันทึก Role (Admin/Staff)
+                
                 showDashboard(displayName);
+                checkAdminAccess(); // ตรวจสอบสิทธิ์หลัง Login สำเร็จ
             } else {
                 alert(data.message || "ข้อมูลไม่ถูกต้อง");
                 btn.innerText = "Sign In to Dashboard";
@@ -353,32 +350,36 @@
             document.body.style.overflow = 'auto';
         }, 500);
     }
+
+    // ฟังก์ชันตรวจสอบสิทธิ์ Admin
     function checkAdminAccess() {
-    const role = localStorage.getItem('userRole'); // ดึง Role จากตอน Login
-    const adminCard = document.getElementById('adminCard');
-    const adminBadge = document.getElementById('adminBadge');
+        const role = (localStorage.getItem('userRole') || "").toLowerCase(); 
+        const adminCard = document.getElementById('adminCard');
+        const adminBadge = document.getElementById('adminBadge');
 
-    if (role !== 'admin') {
-        // ถ้าไม่ใช่ Admin ให้ทำให้ Card ดูเหมือนกดไม่ได้
-        adminCard.style.opacity = "0.5";
-        adminCard.style.cursor = "not-allowed";
-        adminCard.onclick = null;
-        adminBadge.innerText = "จำกัดสิทธิ์เฉพาะ Admin";
-        adminBadge.className = "mt-4 inline-block px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-bold rounded-full";
+        if (role !== 'admin') {
+            // หากไม่ใช่ Admin ให้จางปุ่มลงและปิดการคลิก
+            adminCard.style.opacity = "0.5";
+            adminCard.classList.add('disabled');
+            adminBadge.innerText = "จำกัดสิทธิ์เฉพาะ Admin";
+            adminBadge.className = "mt-4 inline-block px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-bold rounded-full";
+        } else {
+            // หากเป็น Admin ให้แสดงผลปกติ
+            adminCard.style.opacity = "1";
+            adminCard.classList.remove('disabled');
+            adminBadge.innerText = "สิทธิ์เฉพาะผู้ดูแล";
+            adminBadge.className = "mt-4 inline-block px-3 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-bold rounded-full uppercase tracking-wider";
+        }
     }
-}
 
-function goToAdmin() {
-    const role = localStorage.getItem('userRole');
-    if (role === 'admin') {
-        window.location.href = 'Admin.html'; // ลิงก์ไปยังชื่อไฟล์หน้า Admin ของคุณ
-    } else {
-        alert("คุณไม่มีสิทธิ์เข้าถึงหน้านี้");
+    function goToAdmin() {
+        const role = (localStorage.getItem('userRole') || "").toLowerCase();
+        if (role === 'admin') {
+            openFullPage('Admin.html'); 
+        } else {
+            alert("สิทธิ์ของคุณไม่สามารถเข้าถึงหน้านี้ได้");
+        }
     }
-}
-
-// เรียกใช้งานเมื่อโหลดหน้า Dashboard
-window.addEventListener('load', checkAdminAccess);
 </script>
 
 </body>
