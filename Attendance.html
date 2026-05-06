@@ -2,44 +2,135 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CubicPlus | Attendance</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- เพิ่ม Icon Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-active:active { transform: scale(0.95); }
+    </style>
 </head>
-<body class="p-4 bg-slate-50 font-['Kanit'] flex flex-col items-center justify-center min-h-screen">
-    <div class="w-full max-w-md space-y-6">
-        <div class="bg-white rounded-[2.5rem] p-10 text-center shadow-xl">
-            <h1 id="clock" class="text-5xl font-bold text-slate-800 mb-2">00:00:00</h1>
-            <p id="dateText" class="text-slate-400 text-xs mb-8"></p>
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="recordTime('checkIn')" class="py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:scale-105 transition-transform">CHECK IN</button>
-                <button onclick="recordTime('checkOut')" class="py-4 bg-rose-500 text-white rounded-2xl font-bold hover:scale-105 transition-transform">CHECK OUT</button>
+<body class="bg-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <div class="w-full max-w-md space-y-5">
+        <!-- Header & Profile -->
+        <div class="flex items-center justify-between px-2">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                    <i data-lucide="user"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Welcome back</p>
+                    <h2 id="userNameDisplay" class="font-bold text-slate-800 text-lg leading-tight">User</h2>
+                </div>
+            </div>
+            <div id="statusBadge" class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[10px] font-bold tracking-widest uppercase">
+                Offline
             </div>
         </div>
-        <div class="bg-white rounded-[2.5rem] p-6 shadow-xl">
-            <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span> ประวัติวันนี้</h3>
-            <div id="personalHistory" class="space-y-3 text-sm text-slate-400 text-center">กำลังโหลด...</div>
+
+        <!-- Clock Card -->
+        <div class="glass-card rounded-[2.5rem] p-8 text-center shadow-2xl shadow-slate-200 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-indigo-500 to-rose-400"></div>
+            <p id="dateText" class="text-indigo-500 font-medium mb-1"></p>
+            <h1 id="clock" class="text-6xl font-bold text-slate-800 tracking-tighter mb-8">00:00:00</h1>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="recordTime('checkIn', this)" id="btnCheckIn" class="btn-active group flex flex-col items-center justify-center gap-2 py-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-3xl font-bold transition-all shadow-lg shadow-emerald-100">
+                    <i data-lucide="log-in" class="group-hover:scale-110 transition-transform"></i>
+                    <span>CHECK IN</span>
+                </button>
+                <button onclick="recordTime('checkOut', this)" id="btnCheckOut" class="btn-active group flex flex-col items-center justify-center gap-2 py-5 bg-rose-500 hover:bg-rose-600 text-white rounded-3xl font-bold transition-all shadow-lg shadow-rose-100">
+                    <i data-lucide="log-out" class="group-hover:scale-110 transition-transform"></i>
+                    <span>CHECK OUT</span>
+                </button>
+            </div>
         </div>
+
+        <!-- Today's Summary Info -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-slate-400 text-xs mb-1">เข้างานล่าสุด</p>
+                <p id="lastIn" class="font-bold text-slate-700">--:--</p>
+            </div>
+            <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-slate-400 text-xs mb-1">ออกงานล่าสุด</p>
+                <p id="lastOut" class="font-bold text-slate-700">--:--</p>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-1.5 h-5 bg-indigo-500 rounded-full"></span> 
+                    ประวัติวันนี้
+                </h3>
+                <button onclick="loadPersonalToday()" class="text-slate-400 hover:text-indigo-500 transition-colors">
+                    <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div id="personalHistory" class="space-y-3">
+                <div class="flex flex-col items-center py-8 text-slate-300">
+                    <i data-lucide="loader-2" class="animate-spin mb-2"></i>
+                    <p class="text-xs">กำลังโหลดข้อมูล...</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-[10px] text-slate-400 uppercase tracking-[0.2em]">CubicPlus Attendance System v2.0</p>
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxs6htf33iNyVvOmL88GnAHzzEK665A4Mw6Z9gOWXVpxD0LfDEqqEagDlkRhovPC5KC_g/exec";
-        const userLogin = localStorage.getItem('userLogin') || "guest";
+        const userLogin = localStorage.getItem('userLogin') || "Guest User";
+        
+        // แสดงชื่อผู้ใช้
+        document.getElementById('userNameDisplay').innerText = userLogin;
 
         function updateClock() {
             const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
-            document.getElementById('dateText').innerText = now.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'long' });
+            document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false });
+            document.getElementById('dateText').innerText = now.toLocaleDateString('th-TH', { 
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+            });
         }
         setInterval(updateClock, 1000);
+        updateClock();
 
-        async function recordTime(action) {
+        async function recordTime(action, btn) {
+            const originalContent = btn.innerHTML;
+            // ปรับปุ่มเป็นสถานะกำลังโหลด
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i><span>กำลังบันทึก...</span>`;
+            lucide.createIcons();
+
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=${action}&user=${userLogin}`);
                 const data = await res.json();
-                alert(data.status === "success" ? "บันทึกสำเร็จ" : data.message);
-                loadPersonalToday();
-            } catch (e) { alert("เชื่อมต่อล้มเหลว"); }
+                
+                if (data.status === "success") {
+                    // ปรับแต่ง Alert ให้ดูดีขึ้น (ใช้ Alert เดิมตามโค้ดต้นฉบับเพื่อให้ทำงานต่อได้)
+                    alert("✅ บันทึก " + (action === 'checkIn' ? 'เข้างาน' : 'ออกงาน') + " สำเร็จ");
+                    loadPersonalToday();
+                } else {
+                    alert("❌ " + data.message);
+                }
+            } catch (e) { 
+                alert("⚠️ เชื่อมต่อล้มเหลว กรุณาลองใหม่"); 
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                lucide.createIcons();
+            }
         }
 
         async function loadPersonalToday() {
@@ -50,15 +141,69 @@
                 const today = new Date().toDateString();
                 const todayData = data.filter(item => new Date(item.timestamp).toDateString() === today);
 
-                container.innerHTML = todayData.length ? todayData.map(item => `
-                    <div class="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <span class="font-bold text-slate-600">${item.type}</span>
-                        <span class="text-indigo-600 font-bold">${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})} น.</span>
-                    </div>
-                `).join('') : "ยังไม่มีข้อมูลวันนี้";
-            } catch (e) { container.innerHTML = "โหลดข้อมูลไม่สำเร็จ"; }
+                if (todayData.length === 0) {
+                    container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs italic">ไม่มีประวัติการลงเวลาในวันนี้</div>`;
+                    updateStatus('Offline');
+                    return;
+                }
+
+                // เรียงจากล่าสุดไปบนสุด
+                todayData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                container.innerHTML = todayData.map(item => {
+                    const isCheckIn = item.type.toLowerCase().includes('in');
+                    const colorClass = isCheckIn ? 'text-emerald-500 bg-emerald-50' : 'text-rose-500 bg-rose-50';
+                    const icon = isCheckIn ? 'arrow-right-circle' : 'arrow-left-circle';
+                    
+                    return `
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:bg-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 rounded-xl ${colorClass}">
+                                    <i data-lucide="${icon}" class="w-4 h-4"></i>
+                                </div>
+                                <span class="font-bold text-slate-700">${item.type}</span>
+                            </div>
+                            <span class="text-indigo-600 font-bold bg-white px-3 py-1 rounded-lg shadow-sm border border-slate-100">
+                                ${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})} น.
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+
+                // อัปเดตข้อมูลสรุปด้านบน
+                const lastIn = todayData.find(i => i.type.toLowerCase().includes('in'));
+                const lastOut = todayData.find(i => i.type.toLowerCase().includes('out'));
+                
+                if(lastIn) document.getElementById('lastIn').innerText = new Date(lastIn.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}) + " น.";
+                if(lastOut) document.getElementById('lastOut').innerText = new Date(lastOut.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}) + " น.";
+
+                // อัปเดต Badge สถานะ
+                if (todayData[0].type.toLowerCase().includes('in')) {
+                    updateStatus('Working');
+                } else {
+                    updateStatus('Offline');
+                }
+
+                lucide.createIcons();
+            } catch (e) { 
+                container.innerHTML = `<div class="text-center py-6 text-rose-400 text-xs italic">โหลดข้อมูลไม่สำเร็จ</div>`; 
+            }
         }
-        window.onload = loadPersonalToday;
+
+        function updateStatus(status) {
+            const badge = document.getElementById('statusBadge');
+            badge.innerText = status;
+            if(status === 'Working') {
+                badge.className = "px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-[10px] font-bold tracking-widest uppercase animate-pulse";
+            } else {
+                badge.className = "px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[10px] font-bold tracking-widest uppercase";
+            }
+        }
+
+        window.onload = () => {
+            loadPersonalToday();
+            lucide.createIcons();
+        };
     </script>
 </body>
 </html>
