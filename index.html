@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubicPlus | Premium </title>
+    <title>CubicPlus | Premium Portal</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;400;600&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,7 +22,6 @@
             overflow-x: hidden;
         }
 
-        /* 🌌 ผสาน Mesh Background ให้เนียนขึ้น */
         .bg-mesh {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -34,7 +33,6 @@
             z-index: -1;
         }
 
-        /* ✨ Premium Glass Card */
         .premium-card {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
@@ -44,14 +42,13 @@
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .premium-card:hover {
+        .premium-card:not(.disabled):hover {
             transform: translateY(-5px);
             background: rgba(255, 255, 255, 0.95);
             box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.15);
             border-color: rgba(99, 102, 241, 0.3);
         }
 
-        /* 🤖 AI Card Glow */
         .ai-card {
             position: relative;
             background: linear-gradient(white, white) padding-box, var(--ai-gradient) border-box;
@@ -70,7 +67,12 @@
         }
         .ai-card:hover::after { opacity: 0.15; }
 
-        /* ⌨️ Input Styling */
+        .disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
         .premium-input {
             transition: all 0.3s ease;
             border: 1.5px solid #f1f5f9;
@@ -81,7 +83,6 @@
             background: white;
         }
 
-        /* 🖼️ Full Page Viewer */
         #fullPageViewer {
             position: fixed;
             inset: 0;
@@ -141,7 +142,6 @@
 <!-- 🔑 LOGIN SECTION -->
 <div id="loginSection" class="w-full max-w-[420px] fade-in">
     <div class="premium-card rounded-[2.5rem] p-10 text-center shadow-2xl border border-white/50">
-        <!-- 📸 Logo Space -->
         <div class="mb-8 flex justify-center">
             <div class="relative">
                 <div class="absolute inset-0 bg-indigo-500 blur-2xl opacity-20 rounded-full"></div>
@@ -196,32 +196,62 @@
     </header>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <!-- Card 1 -->
+        <!-- แถวที่ 1 -->
+        <!-- 1. AI Assistant -->
+        <div onclick="openFullPage('Ai.html')" class="premium-card ai-card p-8 rounded-[2rem] cursor-pointer group">
+            <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm">🤖</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">AI Assistant</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">ตรวจสอบประกัน ARS และผู้ช่วยส่วนตัว</p>
+        </div>
+
+        <!-- 2. ลงเวลางาน -->
+        <div class="premium-card disabled p-8 rounded-[2rem]">
+            <div class="w-14 h-14 bg-slate-100 rounded-2xl mb-6 flex items-center justify-center text-2xl">⏰</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">ลงเวลางาน</h3>
+            <p class="text-indigo-500 text-xs font-semibold tracking-wider">*กำลังพัฒนาระบบ</p>
+        </div>
+
+        <!-- 3. ปฏิทินวันหยุดวันลา -->
+        <div class="premium-card disabled p-8 rounded-[2rem]">
+            <div class="w-14 h-14 bg-slate-100 rounded-2xl mb-6 flex items-center justify-center text-2xl">📅</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">วันหยุด/วันลา</h3>
+            <p class="text-indigo-500 text-xs font-semibold tracking-wider">*กำลังพัฒนาระบบ</p>
+        </div>
+
+        <!-- 4. สรุปงานรายวัน -->
+        <div class="premium-card disabled p-8 rounded-[2rem]">
+            <div class="w-14 h-14 bg-slate-100 rounded-2xl mb-6 flex items-center justify-center text-2xl">📝</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">สรุปงานรายวัน</h3>
+            <p class="text-indigo-500 text-xs font-semibold tracking-wider">*กำลังพัฒนาระบบ</p>
+        </div>
+
+        <!-- แถวที่ 2 -->
+        <!-- 5. เบิกค่าใช้จ่าย -->
         <div onclick="openFullPage('Form.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-blue-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">💰</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">เบิกค่าใช้จ่าย</h3>
             <p class="text-slate-400 text-sm leading-relaxed">ยื่นคำขอเบิกงบประมาณและค่าใช้จ่ายบริษัท</p>
         </div>
 
-        <!-- Card 2 -->
+        <!-- 6. คำนวณน้ำมัน -->
         <div onclick="openFullPage('oil.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-orange-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 shadow-sm">⛽</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">คำนวณน้ำมัน</h3>
             <p class="text-slate-400 text-sm leading-relaxed">ระบบบันทึกและคำนวณอัตราสิ้นเปลืองน้ำมัน</p>
         </div>
 
-        <!-- Card 3 -->
+        <!-- 7. แปลงไฟล์ PDF -->
         <div onclick="openFullPage('PDFtoJPG.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-emerald-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-sm">📄</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">แปลงไฟล์ PDF</h3>
             <p class="text-slate-400 text-sm leading-relaxed">จัดการแปลงไฟล์เอกสารให้เป็นรูปภาพ JPG</p>
         </div>
 
-        <!-- Card 4 (AI) -->
-        <div onclick="openFullPage('Ai.html')" class="premium-card ai-card p-8 rounded-[2rem] cursor-pointer group">
-            <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm">🤖</div>
-            <h3 class="text-xl font-bold mb-2 text-slate-800">AI Assistant</h3>
-            <p class="text-slate-400 text-sm leading-relaxed">ตรวจสอบประกัน ARS และผู้ช่วยส่วนตัว</p>
+        <!-- 8. Admin -->
+        <div class="premium-card disabled p-8 rounded-[2rem] border-dashed border-2 border-slate-200">
+            <div class="w-14 h-14 bg-slate-100 rounded-2xl mb-6 flex items-center justify-center text-2xl">⚙️</div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">Admin</h3>
+            <p class="text-indigo-500 text-xs font-semibold tracking-wider">*กำลังพัฒนาระบบ</p>
         </div>
     </div>
 
