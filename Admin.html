@@ -12,6 +12,8 @@
         .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
         .card-neo { background: white; border: 1px solid #f1f5f9; border-radius: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02); }
         tr:hover { background-color: #fcfdfe; }
+        /* สไตล์เพิ่มเติมสำหรับปุ่มและฟิลด์ */
+        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -41,7 +43,7 @@
 
     <div class="max-w-7xl mx-auto px-6">
         
-        <!-- Settings Panel (Hidden by default) -->
+        <!-- Settings Panel -->
         <div id="settingsPanel" class="hidden mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 animate-modal">
             <div class="bg-indigo-900 rounded-[2.5rem] p-8 text-white shadow-xl shadow-indigo-100">
                 <div class="flex items-center gap-3 mb-6">
@@ -51,24 +53,24 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-[10px] uppercase tracking-widest text-indigo-300 font-bold">เวลาเข้างาน</label>
-                        <input type="time" id="configIn" value="09:00" onchange="loadAdminData()" class="w-full mt-2 bg-indigo-800 border-none rounded-2xl p-3 text-white focus:ring-2 focus:ring-indigo-400 outline-none">
+                        <input type="time" id="configIn" value="09:00" onchange="renderTable()" class="w-full mt-2 bg-indigo-800 border-none rounded-2xl p-3 text-white focus:ring-2 focus:ring-indigo-400 outline-none">
                     </div>
                     <div>
                         <label class="text-[10px] uppercase tracking-widest text-indigo-300 font-bold">เวลาเลิกงาน</label>
-                        <input type="time" id="configOut" value="18:00" onchange="loadAdminData()" class="w-full mt-2 bg-indigo-800 border-none rounded-2xl p-3 text-white focus:ring-2 focus:ring-indigo-400 outline-none">
+                        <input type="time" id="configOut" value="18:00" onchange="renderTable()" class="w-full mt-2 bg-indigo-800 border-none rounded-2xl p-3 text-white focus:ring-2 focus:ring-indigo-400 outline-none">
                     </div>
                 </div>
             </div>
             <div class="bg-white rounded-[2.5rem] border border-slate-100 p-8 flex flex-col justify-center">
                 <p class="text-sm text-slate-500 leading-relaxed">
                     <span class="font-bold text-indigo-600">Tip:</span> ระบบจะใช้ค่าเหล่านี้ในการประมวลผลสถานะ <br>
-                    - เข้างานหลัง <span class="inTimeText font-bold">09:00</span> = <span class="text-rose-500 font-bold">สาย</span> <br>
-                    - ออกงานก่อน <span class="outTimeText font-bold">18:00</span> = <span class="text-amber-500 font-bold">กลับก่อน</span>
+                    - เข้างานหลัง <span class="inTimeText font-bold text-slate-700">09:00</span> = <span class="text-rose-500 font-bold">สาย</span> <br>
+                    - ออกงานก่อน <span class="outTimeText font-bold text-slate-700">18:00</span> = <span class="text-amber-500 font-bold">กลับก่อน</span>
                 </p>
             </div>
         </div>
 
-        <!-- Filters & Stats -->
+        <!-- Filters -->
         <div class="flex flex-col md:flex-row gap-4 mb-8">
             <div class="relative flex-1">
                 <i data-lucide="calendar" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -104,7 +106,7 @@
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closePopup()"></div>
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 relative z-10 shadow-2xl transition-all">
             <div id="popupUser" class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-4"></div>
-            <div id="popupText" class="text-slate-600 text-base leading-relaxed whitespace-pre-wrap"></div>
+            <div id="popupText" class="text-slate-600 text-base leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto"></div>
             <button onclick="closePopup()" class="w-full mt-10 py-4 bg-indigo-600 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">เข้าใจแล้ว</button>
         </div>
     </div>
@@ -124,68 +126,81 @@
             const tbody = document.getElementById('tbody');
             const loader = document.getElementById('loader');
             
-            // Get Config Time
-            const configIn = document.getElementById('configIn').value;
-            const configOut = document.getElementById('configOut').value;
-            document.querySelectorAll('.inTimeText').forEach(el => el.innerText = configIn);
-            document.querySelectorAll('.outTimeText').forEach(el => el.innerText = configOut);
-
             tbody.innerHTML = '';
             loader.classList.remove('hidden');
 
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getHistory&role=admin&month=${month}&targetUser=${target}`);
-                currentData = await res.json();
+                currentData = await res.json(); // เก็บข้อมูลดิบ
                 loader.classList.add('hidden');
+                renderTable(); // เรียกฟังก์ชันแสดงผลแยกออกมา
+            } catch (e) { 
+                loader.classList.add('hidden');
+                console.error(e);
+            }
+        }
 
-                tbody.innerHTML = currentData.reverse().map(item => {
-                    const dateObj = new Date(item.timestamp);
-                    const isCheckIn = item.type.includes('เข้า');
-                    
-                    // Logic Check Late / Early Out
-                    const [confInH, confInM] = configIn.split(':').map(Number);
-                    const [confOutH, confOutM] = configOut.split(':').map(Number);
-                    
-                    let timeColor = 'text-slate-700';
-                    let statusLabel = item.type;
-                    
-                    if (isCheckIn) {
-                        if (dateObj.getHours() > confInH || (dateObj.getHours() === confInH && dateObj.getMinutes() > confInM)) {
-                            timeColor = 'text-rose-500';
-                            statusLabel += ' (สาย)';
-                        }
-                    } else {
-                        if (dateObj.getHours() < confOutH || (dateObj.getHours() === confOutH && dateObj.getMinutes() < confOutM)) {
-                            timeColor = 'text-amber-500';
-                            statusLabel += ' (กลับก่อน)';
-                        }
+        function renderTable() {
+            const tbody = document.getElementById('tbody');
+            const configIn = document.getElementById('configIn').value;
+            const configOut = document.getElementById('configOut').value;
+            
+            // อัปเดตข้อความ Tip
+            document.querySelectorAll('.inTimeText').forEach(el => el.innerText = configIn);
+            document.querySelectorAll('.outTimeText').forEach(el => el.innerText = configOut);
+
+            if (!currentData || currentData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-light">ไม่พบข้อมูล</td></tr>`;
+                return;
+            }
+
+            // ใช้สำเนา Array เพื่อ Reverse ป้องกันลำดับข้อมูลจริงเพี้ยน
+            tbody.innerHTML = [...currentData].reverse().map(item => {
+                const dateObj = new Date(item.timestamp);
+                const isCheckIn = item.type.includes('เข้า');
+                const [confInH, confInM] = configIn.split(':').map(Number);
+                const [confOutH, confOutM] = configOut.split(':').map(Number);
+                
+                let timeColor = 'text-slate-700';
+                let statusLabel = item.type;
+                
+                if (isCheckIn) {
+                    if (dateObj.getHours() > confInH || (dateObj.getHours() === confInH && dateObj.getMinutes() > confInM)) {
+                        timeColor = 'text-rose-500';
+                        statusLabel += ' (สาย)';
                     }
+                } else {
+                    if (dateObj.getHours() < confOutH || (dateObj.getHours() === confOutH && dateObj.getMinutes() < confOutM)) {
+                        timeColor = 'text-amber-500';
+                        statusLabel += ' (กลับก่อน)';
+                    }
+                }
 
-                    const safeMemo = item.memo ? item.memo.replace(/'/g, "\\'").replace(/"/g, '\\"') : '';
+                // Clean data สำหรับส่งเข้า function popup
+                const safeMemo = item.memo ? item.memo.replace(/[`'"]/g, " ").replace(/\n/g, "\\n") : "";
 
-                    return `
-                        <tr>
-                            <td class="p-6">
-                                <div class="flex flex-col">
-                                    <span class="text-[10px] font-bold text-slate-400 tracking-wider mb-1">${dateObj.toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'2-digit'})}</span>
-                                    <span class="text-xl font-bold ${timeColor}">${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</span>
-                                </div>
-                            </td>
-                            <td class="p-6 text-sm font-semibold text-slate-700">${item.name}</td>
-                            <td class="p-6 text-center">
-                                <span class="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${isCheckIn ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}">
-                                    ${statusLabel}
-                                </span>
-                            </td>
-                            <td class="p-6">
-                                ${item.memo ? `<button onclick="openPopup('${item.name}', '${safeMemo}')" class="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-xs font-medium hover:bg-indigo-100 transition-all truncate max-w-[200px]">📝 อ่านสรุปงาน</button>` : '<span class="text-[10px] text-slate-300 font-bold">ไม่มีบันทึก</span>'}
-                            </td>
-                            <td class="p-6 text-right"><i data-lucide="check-circle-2" class="w-4 h-4 text-slate-200 ml-auto"></i></td>
-                        </tr>
-                    `;
-                }).join('');
-                lucide.createIcons();
-            } catch (e) { loader.classList.add('hidden'); }
+                return `
+                    <tr>
+                        <td class="p-6">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold text-slate-400 tracking-wider mb-1">${dateObj.toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'2-digit'})}</span>
+                                <span class="text-xl font-bold ${timeColor}">${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</span>
+                            </div>
+                        </td>
+                        <td class="p-6 text-sm font-semibold text-slate-700">${item.name}</td>
+                        <td class="p-6 text-center">
+                            <span class="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${isCheckIn ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}">
+                                ${statusLabel}
+                            </span>
+                        </td>
+                        <td class="p-6">
+                            ${item.memo ? `<button onclick="openPopup('${item.name}', \`${safeMemo}\`)" class="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-xs font-medium hover:bg-indigo-100 transition-all">📝 อ่านสรุปงาน</button>` : '<span class="text-[10px] text-slate-300 font-bold italic">ไม่มีบันทึก</span>'}
+                        </td>
+                        <td class="p-6 text-right"><i data-lucide="check-circle-2" class="w-4 h-4 text-slate-200 ml-auto"></i></td>
+                    </tr>
+                `;
+            }).join('');
+            lucide.createIcons();
         }
 
         function openPopup(user, text) {
@@ -194,16 +209,23 @@
             document.getElementById('popupModal').classList.remove('hidden');
         }
 
-        function closePopup() { document.getElementById('popupModal').classList.add('hidden'); }
+        function closePopup() { 
+            document.getElementById('popupModal').classList.add('hidden'); 
+        }
 
         function exportToCSV() {
             if (currentData.length === 0) return alert("ไม่มีข้อมูล");
             const headers = ["วันที่", "ชื่อ", "ประเภท", "สรุปงาน"];
-            const csvContent = "\uFEFF" + [headers.join(","), ...currentData.map(row => [new Date(row.timestamp).toLocaleString(), row.name, row.type, `"${row.memo || ''}"`].join(","))].join("\n");
+            const csvContent = "\uFEFF" + [headers.join(","), ...currentData.map(row => [
+                new Date(row.timestamp).toLocaleString('th-TH'), 
+                row.name, 
+                row.type, 
+                `"${(row.memo || '').replace(/"/g, '""')}"`
+            ].join(","))].join("\n");
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `CubicPlus_Report.csv`;
+            link.download = `CubicPlus_Report_${document.getElementById('filterMonth').value}.csv`;
             link.click();
         }
 
