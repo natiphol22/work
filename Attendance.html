@@ -3,132 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubicPlus | Premium Attendance</title>
+    <title>CubicPlus | Executive Attendance</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        :root {
+            --primary: #6366f1;
+            --emerald: #10b981;
+            --rose: #f43f5e;
+        }
         body { 
             font-family: 'Kanit', sans-serif;
-            background: radial-gradient(circle at top right, #f8fafc, #eff6ff);
+            background: #f8fafc;
+            overflow-x: hidden;
         }
-        .premium-shadow {
-            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.05);
+        /* Animated Aura Background */
+        .aura-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 0% 0%, #eff6ff 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, #f5f3ff 0%, transparent 50%),
+                        radial-gradient(circle at 100% 0%, #f0fdf4 0%, transparent 50%);
         }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(25px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.03);
         }
-        .btn-gradient-in {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        .action-btn {
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .btn-gradient-out {
-            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
-        @keyframes pulse-soft {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        .status-dot { animation: pulse-soft 2s infinite; }
+        .action-btn:active::after { width: 300%; height: 300%; }
+        .action-btn:hover { transform: translateY(-4px); }
+        
+        .pulse-emerald { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); animation: pulse-e 2s infinite; }
+        @keyframes pulse-e { 70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-6">
+<body class="min-h-screen flex flex-col items-center p-6 md:p-12">
+    <div class="aura-bg"></div>
 
-    <div class="w-full max-w-lg">
-        <!-- Top Navigation / Brand -->
-        <div class="flex justify-between items-center mb-10">
+    <div class="w-full max-w-xl space-y-8">
+        <!-- Top Profile & Brand -->
+        <div class="flex justify-between items-end px-2">
             <div>
-                <h1 class="text-2xl font-semibold text-slate-800 tracking-tight">Cubic<span class="text-indigo-600 font-bold">Plus</span></h1>
-                <p class="text-[10px] text-slate-400 uppercase tracking-[0.3em]">Corporate Ecosystem</p>
+                <p id="greetingText" class="text-slate-400 text-sm font-light tracking-wide italic">Good Morning,</p>
+                <h1 id="userNameDisplay" class="text-3xl font-semibold text-slate-800 tracking-tight leading-none">CubicPlus User</h1>
             </div>
-            <div class="flex items-center gap-3 bg-white/50 p-1.5 pr-4 rounded-full border border-white">
-                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                    <i data-lucide="user" class="w-4 h-4"></i>
+            <div class="text-right">
+                <div class="inline-flex items-center gap-2 bg-white/80 border border-white px-4 py-2 rounded-2xl shadow-sm glass-panel">
+                    <div id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                    <span id="statusText" class="text-xs font-bold text-slate-500 uppercase tracking-widest">Offline</span>
                 </div>
-                <span id="userNameDisplay" class="text-sm font-medium text-slate-600">Loading...</span>
             </div>
         </div>
 
-        <!-- Main Dashboard Card -->
-        <div class="glass-effect rounded-[3rem] p-10 premium-shadow relative overflow-hidden mb-6">
-            <div class="absolute top-0 right-0 p-8 opacity-5">
-                <i data-lucide="clock-3" class="w-32 h-32 text-indigo-900"></i>
-            </div>
-            
-            <div class="relative z-10 text-center">
-                <div id="statusBadge" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold tracking-widest uppercase mb-6 border border-slate-200/50">
-                    <span class="w-2 h-2 rounded-full bg-slate-400 status-dot"></span>
-                    Ready to Record
-                </div>
-                
-                <h2 id="clock" class="text-7xl font-light text-slate-800 tracking-tighter mb-2">00:00:00</h2>
-                <p id="dateText" class="text-slate-400 font-light tracking-wide mb-10"></p>
+        <!-- Main Display -->
+        <div class="glass-panel rounded-[3.5rem] p-12 text-center relative overflow-hidden">
+            <div class="relative z-10">
+                <h2 id="clock" class="text-8xl font-extralight text-slate-800 tracking-tighter mb-4">00:00</h2>
+                <p id="dateText" class="text-indigo-500/80 font-medium tracking-[0.3em] uppercase text-xs mb-12"></p>
 
-                <div class="grid grid-cols-2 gap-6">
-                    <button onclick="recordTime('checkIn', this)" class="group relative overflow-hidden py-6 rounded-[2rem] text-white font-semibold transition-all hover:scale-[1.02] active:scale-95 btn-gradient-in shadow-lg shadow-emerald-200">
-                        <div class="flex flex-col items-center gap-2">
-                            <i data-lucide="log-in" class="w-6 h-6"></i>
-                            <span class="text-sm">ลงเวลางาน</span>
-                        </div>
+                <!-- Dual Actions -->
+                <div class="flex gap-6 justify-center">
+                    <button onclick="recordTime('checkIn', this)" class="action-btn w-full max-w-[180px] py-6 bg-slate-900 text-white rounded-[2rem] shadow-2xl shadow-indigo-200 flex flex-col items-center gap-2 group">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-emerald-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-medium tracking-widest uppercase">Check In</span>
                     </button>
-                    
-                    <button onclick="recordTime('checkOut', this)" class="group relative overflow-hidden py-6 rounded-[2rem] text-white font-semibold transition-all hover:scale-[1.02] active:scale-95 btn-gradient-out shadow-lg shadow-rose-200">
-                        <div class="flex flex-col items-center gap-2">
-                            <i data-lucide="log-out" class="w-6 h-6"></i>
-                            <span class="text-sm">ลงเวลาออก</span>
-                        </div>
+                    <button onclick="recordTime('checkOut', this)" class="action-btn w-full max-w-[180px] py-6 bg-white text-slate-900 border border-slate-100 rounded-[2rem] shadow-xl flex flex-col items-center gap-2 group">
+                        <i data-lucide="log-out" class="w-6 h-6 text-rose-500 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-medium tracking-widest uppercase text-slate-400">Check Out</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Quick Info Widgets -->
-        <div class="grid grid-cols-3 gap-4 mb-8">
-            <div class="bg-white/60 p-4 rounded-3xl border border-white text-center">
-                <p class="text-[10px] text-slate-400 uppercase mb-1">In</p>
-                <p id="lastIn" class="font-bold text-slate-700 text-sm">--:--</p>
+        <!-- Insight Row -->
+        <div class="grid grid-cols-2 gap-6">
+            <div class="glass-panel p-6 rounded-[2.5rem] flex flex-col items-center justify-center space-y-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Arrival</p>
+                <p id="lastIn" class="text-xl font-medium text-slate-700">--:--</p>
+                <div class="w-8 h-1 bg-emerald-400/20 rounded-full"></div>
             </div>
-            <div class="bg-white/60 p-4 rounded-3xl border border-white text-center">
-                <p class="text-[10px] text-slate-400 uppercase mb-1">Out</p>
-                <p id="lastOut" class="font-bold text-slate-700 text-sm">--:--</p>
-            </div>
-            <div class="bg-indigo-600 p-4 rounded-3xl text-center shadow-lg shadow-indigo-100">
-                <p class="text-[10px] text-indigo-200 uppercase mb-1">Total</p>
-                <p id="totalHours" class="font-bold text-white text-sm">0h 0m</p>
+            <div class="glass-panel p-6 rounded-[2.5rem] flex flex-col items-center justify-center space-y-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Departure</p>
+                <p id="lastOut" class="text-xl font-medium text-slate-700">--:--</p>
+                <div class="w-8 h-1 bg-rose-400/20 rounded-full"></div>
             </div>
         </div>
 
-        <!-- Activity History -->
-        <div class="w-full">
-            <div class="flex items-center justify-between px-2 mb-4">
-                <h3 class="font-bold text-slate-800 tracking-tight">รายการล่าสุด</h3>
-                <button onclick="loadPersonalToday()" class="p-2 hover:bg-indigo-50 rounded-full transition-colors text-indigo-400">
+        <!-- The Journal (Activity History) -->
+        <div class="space-y-4">
+            <div class="flex justify-between items-center px-4">
+                <h3 class="text-lg font-semibold text-slate-800 tracking-tight">Today's Journal</h3>
+                <button onclick="loadPersonalToday()" class="text-indigo-500 p-2 hover:bg-indigo-50 rounded-full transition-all">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                 </button>
             </div>
             
-            <div id="personalHistory" class="space-y-3">
-                <!-- Skeleton Loading -->
-                <div class="animate-pulse flex justify-between p-5 bg-white/40 rounded-[1.5rem] border border-white">
-                    <div class="h-4 bg-slate-200 rounded w-1/3"></div>
-                    <div class="h-4 bg-slate-200 rounded w-1/4"></div>
-                </div>
+            <div id="personalHistory" class="space-y-4 px-2">
+                <!-- Data will be loaded here -->
+                <div class="py-10 text-center opacity-20"><i data-lucide="loader" class="animate-spin mx-auto"></i></div>
             </div>
         </div>
+
+        <p class="text-center text-[10px] text-slate-300 font-medium tracking-[0.5em] uppercase">Secured by CubicPlus Enterprise</p>
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxs6htf33iNyVvOmL88GnAHzzEK665A4Mw6Z9gOWXVpxD0LfDEqqEagDlkRhovPC5KC_g/exec";
-        const userLogin = localStorage.getItem('userLogin') || "Unknown User";
+        const userLogin = localStorage.getItem('userLogin') || "Administrator";
         document.getElementById('userNameDisplay').innerText = userLogin;
 
         function updateClock() {
             const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false });
-            document.getElementById('dateText').innerText = now.toLocaleDateString('th-TH', { 
-                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
-            });
+            const hours = now.getHours();
+            
+            // Greeting Logic
+            let greet = "Good Evening,";
+            if(hours < 12) greet = "Good Morning,";
+            else if(hours < 17) greet = "Good Afternoon,";
+            document.getElementById('greetingText').innerText = greet;
+
+            document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false, hour: '2-digit', minute: '2-digit' });
+            document.getElementById('dateText').innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -136,7 +149,8 @@
         async function recordTime(action, btn) {
             const originalContent = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<div class="flex flex-col items-center gap-2 animate-pulse"><i data-lucide="loader-2" class="animate-spin w-6 h-6"></i><span class="text-sm">Processing...</span></div>`;
+            btn.style.opacity = '0.7';
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-indigo-400"></i>`;
             lucide.createIcons();
 
             try {
@@ -147,10 +161,11 @@
                 } else {
                     alert(data.message);
                 }
-            } catch (e) { 
-                alert("การเชื่อมต่อขัดข้อง"); 
+            } catch (e) {
+                alert("Synchronization Error");
             } finally {
                 btn.disabled = false;
+                btn.style.opacity = '1';
                 btn.innerHTML = originalContent;
                 lucide.createIcons();
             }
@@ -165,7 +180,7 @@
                 const todayData = data.filter(item => new Date(item.timestamp).toDateString() === today);
 
                 if (!todayData.length) {
-                    container.innerHTML = `<div class="text-center py-10 text-slate-300 text-sm font-light italic">ยังไม่พบรายการของวันนี้</div>`;
+                    container.innerHTML = `<div class="text-center py-10 text-slate-300 text-xs italic font-light tracking-widest uppercase">No Journal Entries Found Today</div>`;
                     return;
                 }
 
@@ -174,45 +189,46 @@
                 container.innerHTML = todayData.map(item => {
                     const isIn = item.type.toLowerCase().includes('in');
                     return `
-                        <div class="flex justify-between items-center p-5 bg-white/80 rounded-[1.8rem] border border-white/50 premium-shadow">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-2xl ${isIn ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'} flex items-center justify-center">
+                        <div class="glass-panel p-5 rounded-[2rem] flex justify-between items-center group hover:bg-white transition-all">
+                            <div class="flex items-center gap-5">
+                                <div class="w-12 h-12 rounded-2xl ${isIn ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'} flex items-center justify-center shadow-sm">
                                     <i data-lucide="${isIn ? 'arrow-down-left' : 'arrow-up-right'}" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <p class="font-bold text-slate-700 text-sm">${item.type}</p>
-                                    <p class="text-[10px] text-slate-400 uppercase tracking-widest">Confirmed</p>
+                                    <h4 class="font-semibold text-slate-700">${item.type}</h4>
+                                    <p class="text-[9px] text-slate-400 font-bold tracking-tighter uppercase">Cloud Synced • Verified</p>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <p class="text-indigo-600 font-bold text-lg">${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</p>
-                                <p class="text-[10px] text-slate-400">น.</p>
+                                <p class="text-xl font-semibold text-slate-800 leading-none">${new Date(item.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</p>
+                                <span class="text-[9px] text-indigo-400 font-bold uppercase tracking-widest">GMT+7</span>
                             </div>
                         </div>
                     `;
                 }).join('');
 
-                // Update UI Summary
-                const lastIn = todayData.find(i => i.type.toLowerCase().includes('in'));
-                const lastOut = todayData.find(i => i.type.toLowerCase().includes('out'));
-                if(lastIn) document.getElementById('lastIn').innerText = new Date(lastIn.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
-                if(lastOut) document.getElementById('lastOut').innerText = new Date(lastOut.timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+                // Update Stats
+                const ins = todayData.filter(i => i.type.toLowerCase().includes('in'));
+                const outs = todayData.filter(i => i.type.toLowerCase().includes('out'));
+                if(ins.length) document.getElementById('lastIn').innerText = new Date(ins[ins.length-1].timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+                if(outs.length) document.getElementById('lastOut').innerText = new Date(outs[0].timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
 
-                updateStatus(todayData[0].type.toLowerCase().includes('in') ? 'Working' : 'Offline');
+                // Update Status Badge
+                const statusIndicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                if(todayData[0].type.toLowerCase().includes('in')) {
+                    statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-emerald";
+                    statusText.innerText = "Online - Working";
+                    statusText.className = "text-xs font-bold text-emerald-600 uppercase tracking-widest";
+                } else {
+                    statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-slate-300";
+                    statusText.innerText = "Offline";
+                    statusText.className = "text-xs font-bold text-slate-500 uppercase tracking-widest";
+                }
+
                 lucide.createIcons();
-            } catch (e) { 
-                container.innerHTML = `<p class="text-center text-xs text-rose-400">ไม่สามารถโหลดข้อมูลได้</p>`; 
-            }
-        }
-
-        function updateStatus(status) {
-            const badge = document.getElementById('statusBadge');
-            if(status === 'Working') {
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 status-dot"></span> Online - Working`;
-                badge.className = "inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-[11px] font-bold tracking-widest uppercase mb-6 border border-emerald-100";
-            } else {
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-400 status-dot"></span> Offline`;
-                badge.className = "inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold tracking-widest uppercase mb-6 border border-slate-200/50";
+            } catch (e) {
+                container.innerHTML = `<p class="text-center text-xs text-rose-400">Failed to synchronize journal</p>`;
             }
         }
 
