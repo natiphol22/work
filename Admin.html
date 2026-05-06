@@ -12,8 +12,7 @@
         .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
         .card-neo { background: white; border: 1px solid #f1f5f9; border-radius: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02); }
         tr:hover { background-color: #fcfdfe; }
-        /* สไตล์เพิ่มเติมสำหรับปุ่มและฟิลด์ */
-        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+        input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -106,14 +105,14 @@
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closePopup()"></div>
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 relative z-10 shadow-2xl transition-all">
             <div id="popupUser" class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-4"></div>
-            <div id="popupText" class="text-slate-600 text-base leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto"></div>
+            <div id="popupText" class="text-slate-600 text-base leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto pr-2"></div>
             <button onclick="closePopup()" class="w-full mt-10 py-4 bg-indigo-600 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">เข้าใจแล้ว</button>
         </div>
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzE_zj0ZjtsrGZprhQwQI8uyg8AUe264I5p8g4ForxVv4ODrYMlFIWNsEbJXxZnjLOfBw/exec";
-        let currentData = [];
+        let displayData = []; // เก็บข้อมูลลำดับที่จะแสดงในตาราง
 
         function toggleSettings() {
             const panel = document.getElementById('settingsPanel');
@@ -131,12 +130,14 @@
 
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getHistory&role=admin&month=${month}&targetUser=${target}`);
-                currentData = await res.json(); // เก็บข้อมูลดิบ
+                const rawData = await res.json();
+                displayData = [...rawData].reverse(); // เก็บข้อมูลล่าสุดขึ้นก่อน
                 loader.classList.add('hidden');
-                renderTable(); // เรียกฟังก์ชันแสดงผลแยกออกมา
+                renderTable();
             } catch (e) { 
                 loader.classList.add('hidden');
-                console.error(e);
+                console.error("Fetch Error:", e);
+                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-rose-500 font-bold">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>`;
             }
         }
 
@@ -145,39 +146,33 @@
             const configIn = document.getElementById('configIn').value;
             const configOut = document.getElementById('configOut').value;
             
-            // อัปเดตข้อความ Tip
             document.querySelectorAll('.inTimeText').forEach(el => el.innerText = configIn);
             document.querySelectorAll('.outTimeText').forEach(el => el.innerText = configOut);
 
-            if (!currentData || currentData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-light">ไม่พบข้อมูล</td></tr>`;
+            if (displayData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-light italic">ไม่พบรายการข้อมูล</td></tr>`;
                 return;
             }
 
-            // ใช้สำเนา Array เพื่อ Reverse ป้องกันลำดับข้อมูลจริงเพี้ยน
-            tbody.innerHTML = [...currentData].reverse().map(item => {
+            tbody.innerHTML = displayData.map((item, index) => {
                 const dateObj = new Date(item.timestamp);
                 const isCheckIn = item.type.includes('เข้า');
-                const [confInH, confInM] = configIn.split(':').map(Number);
-                const [confOutH, confOutM] = configOut.split(':').map(Number);
+                const [confH, confM] = (isCheckIn ? configIn : configOut).split(':').map(Number);
                 
                 let timeColor = 'text-slate-700';
                 let statusLabel = item.type;
                 
                 if (isCheckIn) {
-                    if (dateObj.getHours() > confInH || (dateObj.getHours() === confInH && dateObj.getMinutes() > confInM)) {
+                    if (dateObj.getHours() > confH || (dateObj.getHours() === confH && dateObj.getMinutes() > confM)) {
                         timeColor = 'text-rose-500';
                         statusLabel += ' (สาย)';
                     }
                 } else {
-                    if (dateObj.getHours() < confOutH || (dateObj.getHours() === confOutH && dateObj.getMinutes() < confOutM)) {
+                    if (dateObj.getHours() < confH || (dateObj.getHours() === confH && dateObj.getMinutes() < confM)) {
                         timeColor = 'text-amber-500';
                         statusLabel += ' (กลับก่อน)';
                     }
                 }
-
-                // Clean data สำหรับส่งเข้า function popup
-                const safeMemo = item.memo ? item.memo.replace(/[`'"]/g, " ").replace(/\n/g, "\\n") : "";
 
                 return `
                     <tr>
@@ -194,7 +189,7 @@
                             </span>
                         </td>
                         <td class="p-6">
-                            ${item.memo ? `<button onclick="openPopup('${item.name}', \`${safeMemo}\`)" class="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-xs font-medium hover:bg-indigo-100 transition-all">📝 อ่านสรุปงาน</button>` : '<span class="text-[10px] text-slate-300 font-bold italic">ไม่มีบันทึก</span>'}
+                            ${item.memo ? `<button onclick="viewMemo(${index})" class="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-xs font-medium hover:bg-indigo-100 transition-all">📝 อ่านสรุปงาน</button>` : '<span class="text-[10px] text-slate-300 font-bold italic">ไม่มีบันทึก</span>'}
                         </td>
                         <td class="p-6 text-right"><i data-lucide="check-circle-2" class="w-4 h-4 text-slate-200 ml-auto"></i></td>
                     </tr>
@@ -203,9 +198,13 @@
             lucide.createIcons();
         }
 
-        function openPopup(user, text) {
-            document.getElementById('popupUser').innerText = "Update By: " + user;
-            document.getElementById('popupText').innerText = text;
+        // ฟังก์ชันใหม่: ใช้ Index เข้าถึงข้อมูล ป้องกัน Syntax Error จากข้อความยาวๆ
+        function viewMemo(index) {
+            const item = displayData[index];
+            if (!item) return;
+            
+            document.getElementById('popupUser').innerText = "Update By: " + item.name;
+            document.getElementById('popupText').innerText = item.memo || "ไม่มีข้อความ";
             document.getElementById('popupModal').classList.remove('hidden');
         }
 
@@ -214,9 +213,9 @@
         }
 
         function exportToCSV() {
-            if (currentData.length === 0) return alert("ไม่มีข้อมูล");
+            if (displayData.length === 0) return alert("ไม่มีข้อมูลให้ Export");
             const headers = ["วันที่", "ชื่อ", "ประเภท", "สรุปงาน"];
-            const csvContent = "\uFEFF" + [headers.join(","), ...currentData.map(row => [
+            const csvContent = "\uFEFF" + [headers.join(","), ...displayData.map(row => [
                 new Date(row.timestamp).toLocaleString('th-TH'), 
                 row.name, 
                 row.type, 
