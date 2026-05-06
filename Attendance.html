@@ -152,8 +152,8 @@
     </div>
 
     <script>
-        // *** ใส่ URL ของ Google Apps Script ของคุณที่นี่ ***
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxs6htf33iNyVvOmL88GnAHzzEK665A4Mw6Z9gOWXVpxD0LfDEqqEagDlkRhovPC5KC_g/exec";
+        // *** แก้ไข URL ของ Google Apps Script ของคุณที่นี่ ***
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzE_zj0ZjtsrGZprhQwQI8uyg8AUe264I5p8g4ForxVv4ODrYMlFIWNsEbJXxZnjLOfBw/exec";
         
         const userLogin = localStorage.getItem('userLogin') || "Administrator";
         document.getElementById('userNameDisplay').innerText = userLogin;
@@ -185,6 +185,7 @@
 
         function closeMemo() {
             document.getElementById('memoModal').classList.add('hidden');
+            // กรณี Skip จะส่งค่า Memo เป็นช่องว่าง
             executeRecord('checkOut', "");
         }
 
@@ -192,7 +193,7 @@
             const memo = document.getElementById('memoInput').value;
             document.getElementById('memoModal').classList.add('hidden');
             executeRecord('checkOut', memo);
-            document.getElementById('memoInput').value = "";
+            document.getElementById('memoInput').value = ""; // เคลียร์ค่า
         }
 
         async function executeRecord(action, memo) {
@@ -205,6 +206,7 @@
             lucide.createIcons();
 
             try {
+                // ส่งพารามิเตอร์ memo ไปพร้อมกับ request
                 const response = await fetch(`${SCRIPT_URL}?action=${action}&user=${encodeURIComponent(userLogin)}&memo=${encodeURIComponent(memo)}`);
                 const data = await response.json();
                 
@@ -231,11 +233,13 @@
                 const data = await res.json();
                 const todayStr = new Date().toDateString();
                 
-                // กรองเฉพาะของวันนี้ และเรียงจากใหม่ไปเก่า
+                // กรองเฉพาะของวันนี้
                 const todayData = data.filter(item => new Date(item.timestamp).toDateString() === todayStr);
 
                 if (!todayData.length) {
                     container.innerHTML = `<div class="text-center py-10 text-slate-300 text-xs italic font-light tracking-widest uppercase">No Journal Entries Found Today</div>`;
+                    document.getElementById('lastIn').innerText = "--:--";
+                    document.getElementById('lastOut').innerText = "--:--";
                     return;
                 }
 
@@ -263,13 +267,15 @@
                 // Update Stats
                 const ins = todayData.filter(i => i.type.includes('เข้า'));
                 const outs = todayData.filter(i => i.type.includes('ออก'));
+                
+                // แก้ไขการแสดงเวลาล่าสุด (เอาค่าจากอันแรกของอาเรย์ที่เรียงใหม่แล้ว)
                 if(ins.length) document.getElementById('lastIn').innerText = new Date(ins[ins.length-1].timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
                 if(outs.length) document.getElementById('lastOut').innerText = new Date(outs[0].timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
 
                 // Update Status Bar
                 const statusIndicator = document.getElementById('statusIndicator');
                 const statusText = document.getElementById('statusText');
-                if(todayData[0].type.includes('เข้า')) {
+                if(todayData[0] && todayData[0].type.includes('เข้า')) {
                     statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-emerald";
                     statusText.innerText = "Online - Working";
                     statusText.className = "text-xs font-bold text-emerald-600 uppercase tracking-widest";
