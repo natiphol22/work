@@ -18,7 +18,6 @@
             background: #f8fafc;
             overflow-x: hidden;
         }
-        /* Animated Aura Background */
         .aura-bg {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -53,6 +52,13 @@
         
         .pulse-emerald { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); animation: pulse-e 2s infinite; }
         @keyframes pulse-e { 70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+        /* Animation for Modal */
+        @keyframes modalShow {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-modal { animation: modalShow 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-6 md:p-12">
@@ -81,11 +87,11 @@
 
                 <!-- Dual Actions -->
                 <div class="flex gap-6 justify-center">
-                    <button onclick="recordTime('checkIn', this)" class="action-btn w-full max-w-[180px] py-6 bg-slate-900 text-white rounded-[2rem] shadow-2xl shadow-indigo-200 flex flex-col items-center gap-2 group">
+                    <button id="btnCheckIn" onclick="recordTime('checkIn', this)" class="action-btn w-full max-w-[180px] py-6 bg-slate-900 text-white rounded-[2rem] shadow-2xl shadow-indigo-200 flex flex-col items-center gap-2 group">
                         <i data-lucide="shield-check" class="w-6 h-6 text-emerald-400 group-hover:scale-110 transition-transform"></i>
                         <span class="text-xs font-medium tracking-widest uppercase">Check In</span>
                     </button>
-                    <button onclick="recordTime('checkOut', this)" class="action-btn w-full max-w-[180px] py-6 bg-white text-slate-900 border border-slate-100 rounded-[2rem] shadow-xl flex flex-col items-center gap-2 group">
+                    <button id="btnCheckOut" onclick="recordTime('checkOut', this)" class="action-btn w-full max-w-[180px] py-6 bg-white text-slate-900 border border-slate-100 rounded-[2rem] shadow-xl flex flex-col items-center gap-2 group">
                         <i data-lucide="log-out" class="w-6 h-6 text-rose-500 group-hover:scale-110 transition-transform"></i>
                         <span class="text-xs font-medium tracking-widest uppercase text-slate-400">Check Out</span>
                     </button>
@@ -115,14 +121,35 @@
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                 </button>
             </div>
-            
             <div id="personalHistory" class="space-y-4 px-2">
-                <!-- Data will be loaded here -->
                 <div class="py-10 text-center opacity-20"><i data-lucide="loader" class="animate-spin mx-auto"></i></div>
             </div>
         </div>
 
         <p class="text-center text-[10px] text-slate-300 font-medium tracking-[0.5em] uppercase">Secured by CubicPlus Enterprise</p>
+    </div>
+
+    <!-- Quick Memo Modal -->
+    <div id="memoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+        <div class="glass-panel w-full max-w-sm rounded-[3rem] p-8 relative z-10 shadow-2xl animate-modal">
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="pen-tool"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-slate-800">Daily Summary</h3>
+                <p class="text-xs text-slate-400 mt-1 font-light tracking-wide">วันนี้คุณทำอะไรสำเร็จบ้าง?</p>
+            </div>
+            
+            <textarea id="memoInput" rows="4" 
+                class="w-full bg-slate-50/50 border border-slate-100 rounded-[1.5rem] p-4 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none mb-2"
+                placeholder="ระบุสั้นๆ เพื่อแจ้ง Admin..."></textarea>
+            
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <button onclick="closeMemo()" class="py-4 text-xs font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors">Skip</button>
+                <button onclick="submitWithMemo()" class="py-4 bg-slate-900 text-white rounded-[1.25rem] text-xs font-bold uppercase tracking-widest shadow-lg shadow-indigo-100 active:scale-95 transition-transform">Submit</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -133,28 +160,50 @@
         function updateClock() {
             const now = new Date();
             const hours = now.getHours();
-            
-            // Greeting Logic
             let greet = "Good Evening,";
             if(hours < 12) greet = "Good Morning,";
             else if(hours < 17) greet = "Good Afternoon,";
             document.getElementById('greetingText').innerText = greet;
-
             document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false, hour: '2-digit', minute: '2-digit' });
             document.getElementById('dateText').innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        async function recordTime(action, btn) {
+        // --- New Memo Logic ---
+        function recordTime(action, btn) {
+            if (action === 'checkOut') {
+                document.getElementById('memoModal').classList.remove('hidden');
+                document.getElementById('memoInput').focus();
+                lucide.createIcons();
+                return;
+            }
+            executeRecord('checkIn', "");
+        }
+
+        function closeMemo() {
+            document.getElementById('memoModal').classList.add('hidden');
+            executeRecord('checkOut', "");
+        }
+
+        function submitWithMemo() {
+            const memo = document.getElementById('memoInput').value;
+            document.getElementById('memoModal').classList.add('hidden');
+            executeRecord('checkOut', memo);
+            document.getElementById('memoInput').value = "";
+        }
+
+        async function executeRecord(action, memo) {
+            const btn = action === 'checkIn' ? document.getElementById('btnCheckIn') : document.getElementById('btnCheckOut');
             const originalContent = btn.innerHTML;
+            
             btn.disabled = true;
             btn.style.opacity = '0.7';
             btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-indigo-400"></i>`;
             lucide.createIcons();
 
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=${action}&user=${userLogin}`);
+                const res = await fetch(`${SCRIPT_URL}?action=${action}&user=${userLogin}&memo=${encodeURIComponent(memo)}`);
                 const data = await res.json();
                 if (data.status === "success") {
                     loadPersonalToday();
@@ -196,7 +245,7 @@
                                 </div>
                                 <div>
                                     <h4 class="font-semibold text-slate-700">${item.type}</h4>
-                                    <p class="text-[9px] text-slate-400 font-bold tracking-tighter uppercase">Cloud Synced • Verified</p>
+                                    ${item.memo ? `<p class="text-[11px] text-indigo-500 bg-indigo-50/50 px-3 py-1 rounded-full mt-1 inline-block font-medium">📝 ${item.memo}</p>` : `<p class="text-[9px] text-slate-400 font-bold tracking-tighter uppercase">Cloud Synced • Verified</p>`}
                                 </div>
                             </div>
                             <div class="text-right">
@@ -207,13 +256,11 @@
                     `;
                 }).join('');
 
-                // Update Stats
                 const ins = todayData.filter(i => i.type.toLowerCase().includes('in'));
                 const outs = todayData.filter(i => i.type.toLowerCase().includes('out'));
                 if(ins.length) document.getElementById('lastIn').innerText = new Date(ins[ins.length-1].timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
                 if(outs.length) document.getElementById('lastOut').innerText = new Date(outs[0].timestamp).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
 
-                // Update Status Badge
                 const statusIndicator = document.getElementById('statusIndicator');
                 const statusText = document.getElementById('statusText');
                 if(todayData[0].type.toLowerCase().includes('in')) {
@@ -225,7 +272,6 @@
                     statusText.innerText = "Offline";
                     statusText.className = "text-xs font-bold text-slate-500 uppercase tracking-widest";
                 }
-
                 lucide.createIcons();
             } catch (e) {
                 container.innerHTML = `<p class="text-center text-xs text-rose-400">Failed to synchronize journal</p>`;
