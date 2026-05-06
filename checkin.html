@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงเวลางาน - Cubic Plus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --bg-color: #f8fafc;
+        }
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        .user-info { margin-bottom: 20px; color: #1e293b; }
+        .digital-clock {
+            font-size: 3rem;
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+        .btn-group {
+            display: grid;
+            gap: 15px;
+        }
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            color: white;
+        }
+        button:active { transform: scale(0.98); }
+        .btn-checkin { background-color: var(--success-color); }
+        .btn-checkout { background-color: var(--danger-color); }
+        .status-msg { margin-top: 20px; font-size: 0.9rem; color: #64748b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="user-info">
+        <h2 id="userNameDisplay">สวัสดี, กำลังโหลด...</h2>
+        <p>ระบบลงเวลางานออนไลน์</p>
+    </div>
+    
+    <div class="digital-clock" id="clock">00:00:00</div>
+
+    <div class="btn-group">
+        <button class="btn-checkin" onclick="handleTimeRecord('Check-in')">ลงเวลาเข้างาน (Check-in)</button>
+        <button class="btn-checkout" onclick="handleTimeRecord('Check-out')">ลงเวลาออกงาน (Check-out)</button>
+    </div>
+
+    <div id="status" class="status-msg"></div>
+</div>
+
+<script>
+    // ดึงข้อมูลจาก LocalStorage ที่เก็บไว้ตอน Login
+    const userData = JSON.parse(localStorage.getItem('userSession'));
+    if (!userData) {
+        window.location.href = 'login.html'; // ถ้าไม่มี Session ให้กลับไป Login
+    } else {
+        document.getElementById('userNameDisplay').innerText = `สวัสดี, ${userData.name}`;
+    }
+
+    // ฟังก์ชันนาฬิกา
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
+    }
+    setInterval(updateClock, 1000);
+
+    // ฟังก์ชันบันทึกเวลา
+    async function handleTimeRecord(type) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerText = "กำลังบันทึกข้อมูล...";
+        
+        const scriptUrl = "YOUR_APPS_SCRIPT_URL"; // วาง URL ของ Google Apps Script ที่มีฟังก์ชัน doPost
+        
+        try {
+            const response = await fetch(scriptUrl, {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: userData.name,
+                    type: type
+                })
+            });
+            const result = await response.json();
+            if(result.status === 'success') {
+                statusDiv.style.color = "green";
+                statusDiv.innerText = `บันทึก ${type} สำเร็จแล้ว!`;
+            }
+        } catch (error) {
+            statusDiv.style.color = "red";
+            statusDiv.innerText = "เกิดข้อผิดพลาด กรุณาลองใหม่";
+        }
+    }
+</script>
+</body>
+</html>
