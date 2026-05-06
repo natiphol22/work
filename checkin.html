@@ -23,37 +23,59 @@
         }
         .container {
             background: white;
-            padding: 2rem;
-            border-radius: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 2.5rem;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
             text-align: center;
             width: 90%;
             max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.7);
         }
-        .user-info { margin-bottom: 20px; color: #1e293b; }
+        .user-info { margin-bottom: 25px; color: #1e293b; }
+        .user-info h2 { font-weight: 600; margin-bottom: 5px; color: #0f172a; }
+        .user-info p { color: #64748b; font-size: 0.9rem; }
+        
         .digital-clock {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 500;
             color: var(--primary-color);
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+            font-variant-numeric: tabular-nums;
         }
         .btn-group {
             display: grid;
             gap: 15px;
         }
         button {
-            padding: 15px;
+            padding: 18px;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 1.1rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-        button:active { transform: scale(0.98); }
-        .btn-checkin { background-color: var(--success-color); }
-        .btn-checkout { background-color: var(--danger-color); }
-        .status-msg { margin-top: 20px; font-size: 0.9rem; color: #64748b; }
+        button:active { transform: scale(0.96); opacity: 0.9; }
+        .btn-checkin { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+        }
+        .btn-checkout { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.2);
+        }
+        .status-msg { 
+            margin-top: 25px; 
+            font-size: 0.95rem; 
+            min-height: 1.5em;
+            padding: 10px;
+            border-radius: 12px;
+        }
     </style>
 </head>
 <body>
@@ -61,58 +83,73 @@
 <div class="container">
     <div class="user-info">
         <h2 id="userNameDisplay">สวัสดี, กำลังโหลด...</h2>
-        <p>ระบบลงเวลางานออนไลน์</p>
+        <p>ระบบลงเวลางานออนไลน์ Cubic Plus</p>
     </div>
     
     <div class="digital-clock" id="clock">00:00:00</div>
 
     <div class="btn-group">
-        <button class="btn-checkin" onclick="handleTimeRecord('Check-in')">ลงเวลาเข้างาน (Check-in)</button>
-        <button class="btn-checkout" onclick="handleTimeRecord('Check-out')">ลงเวลาออกงาน (Check-out)</button>
+        <button class="btn-checkin" onclick="handleTimeRecord('Check-in')">
+            <span>ลงเวลาเข้างาน (Check-in)</span>
+        </button>
+        <button class="btn-checkout" onclick="handleTimeRecord('Check-out')">
+            <span>ลงเวลาออกงาน (Check-out)</span>
+        </button>
     </div>
 
     <div id="status" class="status-msg"></div>
 </div>
 
 <script>
-    // ดึงข้อมูลจาก LocalStorage ที่เก็บไว้ตอน Login
-    const userData = JSON.parse(localStorage.getItem('userSession'));
-    if (!userData) {
-        window.location.href = 'login.html'; // ถ้าไม่มี Session ให้กลับไป Login
+    // 1. แก้ไขจุดดึงข้อมูลให้ตรงกับ Index.html (ใช้ Key 'userName')
+    const currentUserName = localStorage.getItem('userName');[cite: 2]
+    
+    if (!currentUserName) {[cite: 1]
+        // ถ้าไม่มีข้อมูลผู้ใช้ ให้แจ้งเตือนก่อนกลับหน้า Login
+        document.body.innerHTML = "<div style='text-align:center; padding:20px;'>ไม่พบข้อมูลการเข้าสู่ระบบ กำลังกลับหน้าหลัก...</div>";
+        setTimeout(() => { window.location.href = 'Index.html'; }, 2000);
     } else {
-        document.getElementById('userNameDisplay').innerText = `สวัสดี, ${userData.name}`;
+        document.getElementById('userNameDisplay').innerText = `สวัสดี, ${currentUserName}`;[cite: 1]
     }
 
-    // ฟังก์ชันนาฬิกา
+    // 2. ฟังก์ชันนาฬิกา
     function updateClock() {
         const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
+        document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
     }
     setInterval(updateClock, 1000);
+    updateClock();
 
-    // ฟังก์ชันบันทึกเวลา
+    // 3. ฟังก์ชันบันทึกเวลา
     async function handleTimeRecord(type) {
         const statusDiv = document.getElementById('status');
-        statusDiv.innerText = "กำลังบันทึกข้อมูล...";
+        statusDiv.innerText = "⌛ กำลังบันทึกข้อมูล...";
+        statusDiv.style.color = "#6366f1";
+        statusDiv.style.background = "#f1f5f9";
         
-        const scriptUrl = "YOUR_APPS_SCRIPT_URL"; // วาง URL ของ Google Apps Script ที่มีฟังก์ชัน doPost
+        // ⚠️ สำคัญ: ต้องนำ URL จากการ Deploy Google Apps Script มาวางที่นี่
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbxTUr0CwjDhR2vCKaqkcQlNrwsLXfZlDp9vqpGQSxaktbyV_3dWY1OGvPdRLtFBhYCzWA/exec";[cite: 2]
         
         try {
-            const response = await fetch(scriptUrl, {
-                method: 'POST',
-                body: JSON.stringify({
-                    name: userData.name,
-                    type: type
-                })
-            });
+            // ส่งข้อมูลไปยัง Apps Script (แนะนำใช้ GET หรือจัดรูปแบบ POST ให้ตรงกับ Script)
+            const response = await fetch(`${scriptUrl}?name=${encodeURIComponent(currentUserName)}&type=${encodeURIComponent(type)}`);[cite: 1, 2]
             const result = await response.json();
-            if(result.status === 'success') {
-                statusDiv.style.color = "green";
-                statusDiv.innerText = `บันทึก ${type} สำเร็จแล้ว!`;
+            
+            if(result.status === 'success' || result.result === 'success') {[cite: 1, 2]
+                statusDiv.style.color = "#065f46";
+                statusDiv.style.background = "#ecfdf5";
+                statusDiv.innerHTML = `✅ บันทึก <b>${type}</b> สำเร็จแล้ว!`;
+            } else {
+                throw new Error("Server returned error");
             }
         } catch (error) {
-            statusDiv.style.color = "red";
-            statusDiv.innerText = "เกิดข้อผิดพลาด กรุณาลองใหม่";
+            statusDiv.style.color = "#991b1b";
+            statusDiv.style.background = "#fef2f2";
+            statusDiv.innerText = "❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง";[cite: 1]
         }
     }
 </script>
