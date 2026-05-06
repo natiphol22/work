@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Expense - PDF to JPG Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Sarabun', 'sans-serif'] } } } }
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .input-dark {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .input-dark:focus {
+            border-color: #06b6d4;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+            outline: none;
+        }
+        .preview-container {
+            background-image: radial-gradient(circle at 50% 0%, #1e293b, #020617);
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+        
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #06b6d4;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-black text-slate-200 h-screen overflow-hidden flex">
+
+    <div class="w-[450px] h-full flex flex-col glass-panel z-10 shadow-2xl relative">
+        <div class="p-6 border-b border-white/10 relative overflow-hidden flex-shrink-0">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl"></div>
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-400 flex items-center gap-2">
+                <svg class="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                PDF to JPG Pro
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">Batch Conversion System (Max 5 Files)</p>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1 space-y-6">
+            
+            <!-- Step 1: Upload -->
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5 hover:border-cyan-500/30 transition-all">
+                <h2 class="text-sm font-bold text-cyan-400 tracking-wider mb-4">01. อัปโหลดไฟล์ PDF</h2>
+                <div class="relative w-full h-24 rounded-lg border-2 border-dashed border-slate-600 hover:border-cyan-400 transition-colors flex items-center justify-center bg-black/20 cursor-pointer overflow-hidden group">
+                    <input type="file" id="pdf-upload" multiple accept=".pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                    <div class="text-center pointer-events-none group-hover:scale-105 transition-transform">
+                        <svg class="w-6 h-6 mx-auto text-slate-400 mb-1 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <span class="text-xs text-slate-300">คลิกเพิ่มไฟล์ หรือ ลากไฟล์มาวาง</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                    <p class="text-[10px] text-slate-400" id="file-count-status">สะสมไฟล์ได้สูงสุด 5 ไฟล์</p>
+                    <button onclick="clearAllFiles()" id="btn-clear" class="text-[10px] text-red-400 hover:text-red-300 hidden">ล้างทั้งหมด</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Naming -->
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5 hover:border-emerald-500/30 transition-all">
+                <h2 class="text-sm font-bold text-emerald-400 tracking-wider mb-4">02. ตั้งชื่อไฟล์ใหม่ (Output Name)</h2>
+                <div id="file-list-container" class="space-y-3">
+                    <p class="text-xs text-slate-500 italic text-center py-4">อัปโหลดไฟล์เพื่อตั้งชื่อ...</p>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Step 3: Action -->
+        <div class="p-5 border-t border-white/10 bg-black/40 backdrop-blur-md">
+            <button id="btn-convert" onclick="processFiles()" disabled class="w-full group relative py-3 px-4 rounded-xl font-medium text-white overflow-hidden transition-all bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed [&:not(:disabled)]:shadow-[0_0_20px_rgba(6,182,212,0.3)] [&:not(:disabled)]:hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]">
+                <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 group-hover:scale-105 transition-transform duration-300 hidden group-enabled:block"></div>
+                <div class="relative flex items-center justify-center gap-2">
+                    <div id="loading-spinner" class="loader hidden"></div>
+                    <svg id="btn-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span id="btn-text">แปลงไฟล์ & ดาวน์โหลด (ZIP)</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Right Panel: Preview/Instructions -->
+    <div class="flex-1 preview-container flex items-center justify-center relative">
+        <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+            <svg class="w-96 h-96" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        </div>
+        
+        <div class="text-center z-10 space-y-4 max-w-md" id="status-panel">
+            <div class="w-20 h-20 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto border border-cyan-500/30">
+                <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-white">ระบบพร้อมใช้งาน</h2>
+            <p class="text-slate-400 text-sm leading-relaxed">
+                1. ทยอยอัปโหลดไฟล์เพิ่มได้เรื่อยๆ สูงสุด 5 ไฟล์<br>
+                2. เปลี่ยนชื่อไฟล์ตามต้องการในแถบด้านซ้าย<br>
+                3. กดดาวน์โหลด ระบบจะรวมทุกไฟล์เป็น .zip ให้อัตโนมัติ
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+
+        // 1. จัดการเมื่อผู้ใช้อัปโหลดไฟล์ (แก้ไขให้สะสมไฟล์ได้)
+        document.getElementById('pdf-upload').addEventListener('change', function(e) {
+            // ดึงไฟล์ที่พึ่งอัปโหลดเข้ามาใหม่
+            let newFiles = Array.from(e.target.files).filter(f => f.type === 'application/pdf');
+
+            // นำไฟล์ใหม่ไปต่อท้ายไฟล์เดิมที่มีอยู่
+            selectedFiles = [...selectedFiles, ...newFiles];
+
+            // เช็คว่าเกิน 5 ไฟล์หรือไม่ ถ้าเกินให้ตัดทิ้ง
+            if (selectedFiles.length > 5) {
+                alert('สะสมได้สูงสุด 5 ไฟล์ครับ ระบบจะตัดไฟล์ที่เกินออกให้โดยอัตโนมัติ');
+                selectedFiles = selectedFiles.slice(0, 5);
+            }
+
+            // ล้างค่า input เพื่อให้สามารถกดเลือกไฟล์เดิมซ้ำได้ในกรณีที่ลบออกแล้วเพิ่มใหม่
+            e.target.value = '';
+
+            updateUI();
+        });
+
+        // 2. ฟังก์ชันอัปเดตหน้าตา UI
+        function updateUI() {
+            const countStatus = document.getElementById('file-count-status');
+            const btnConvert = document.getElementById('btn-convert');
+            const btnClear = document.getElementById('btn-clear');
+            
+            countStatus.textContent = `เพิ่มแล้ว ${selectedFiles.length}/5 ไฟล์`;
+            btnConvert.disabled = selectedFiles.length === 0;
+            
+            if (selectedFiles.length > 0) {
+                btnClear.classList.remove('hidden');
+            } else {
+                btnClear.classList.add('hidden');
+                countStatus.textContent = `สะสมไฟล์ได้สูงสุด 5 ไฟล์`;
+            }
+
+            renderFileList();
+        }
+
+        // 3. สร้างช่องกรอกชื่อไฟล์ และปุ่มลบ
+        function renderFileList() {
+            const container = document.getElementById('file-list-container');
+            container.innerHTML = '';
+
+            if (selectedFiles.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 italic text-center py-4">อัปโหลดไฟล์เพื่อตั้งชื่อ...</p>';
+                return;
+            }
+
+            selectedFiles.forEach((file, index) => {
+                let defaultName = file.name.replace(/\.[^/.]+$/, ""); 
+                
+                const html = `
+                    <div class="flex items-center gap-2 group">
+                        <span class="text-[10px] text-slate-400 w-4 text-center">${index + 1}.</span>
+                        <input type="text" id="filename-${index}" value="${defaultName}" 
+                               class="input-dark flex-1 rounded-lg p-2 text-sm" placeholder="ชื่อไฟล์ ${index + 1}">
+                        <span class="text-xs text-slate-500">.jpg</span>
+                        <button onclick="removeFile(${index})" class="text-slate-500 hover:text-red-400 p-1 transition-colors" title="ลบไฟล์นี้">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        // 4. ลบไฟล์ที่เลือก
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateUI();
+        }
+
+        // 5. ล้างไฟล์ทั้งหมด
+        function clearAllFiles() {
+            selectedFiles = [];
+            updateUI();
+        }
+
+        // 6. กระบวนการแปลง PDF เป็น JPG และจัดลง Zip
+        async function processFiles() {
+            if (selectedFiles.length === 0) return;
+
+            setLoadingState(true);
+            const zip = new JSZip();
+
+            try {
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    let customName = document.getElementById(`filename-${i}`).value.trim() || `Image_${i+1}`;
+                    
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                    
+                    const page = await pdf.getPage(1);
+                    const scale = 2.5; 
+                    const viewport = page.getViewport({scale: scale});
+                    
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    const renderContext = {
+                        canvasContext: ctx,
+                        viewport: viewport
+                    };
+                    await page.render(renderContext).promise;
+                    
+                    const base64Data = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+                    
+                    zip.file(`${customName}.jpg`, base64Data, {base64: true});
+                }
+
+                const content = await zip.generateAsync({type:"blob"});
+                saveAs(content, "Converted_Expense_Files.zip");
+
+            } catch (error) {
+                console.error("Conversion Error:", error);
+                alert("เกิดข้อผิดพลาดในการแปลงไฟล์: " + error.message);
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        function setLoadingState(isLoading) {
+            const btn = document.getElementById('btn-convert');
+            const spinner = document.getElementById('loading-spinner');
+            const icon = document.getElementById('btn-icon');
+            const text = document.getElementById('btn-text');
+
+            if (isLoading) {
+                btn.disabled = true;
+                spinner.classList.remove('hidden');
+                icon.classList.add('hidden');
+                text.textContent = 'กำลังแปลงไฟล์...';
+            } else {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                icon.classList.remove('hidden');
+                text.textContent = 'แปลงไฟล์ & ดาวน์โหลด (ZIP)';
+            }
+        }
+    </script>
+</body>
+</html>

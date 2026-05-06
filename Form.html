@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Expense Form - Pro Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Sarabun', 'sans-serif'] } } } }
+    </script>
+
+    <style>
+        /* ================= A4 PAPER CORE ================= */
+        .preview-container {
+            background-image: radial-gradient(circle at 50% 0%, #1e293b, #020617);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: auto;
+            padding: 40px;
+        }
+        
+        .a4-paper {
+            background: white;
+            width: 210mm; 
+            min-height: 297mm; 
+            padding: 20mm 15mm; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #000;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .field-box {
+            display: inline-flex;
+            border-bottom: 1.5px dotted #666;
+            align-items: flex-end;
+            min-height: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            padding: 0 4px;
+        }
+        .text-value {
+            color: #000000 !important; 
+            font-weight: 600;
+            white-space: nowrap;
+            margin-bottom: -1px; 
+        }
+
+        .doc-row { margin-bottom: 8px; display: flex; align-items: flex-end; flex-wrap: wrap; }
+        .doc-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .doc-table th, .doc-table td { border: 1px solid #000; padding: 6px 10px; }
+        .col-desc { width: 65%; }
+        .col-amt { width: 25%; text-align: center; }
+        .col-unit { width: 10%; text-align: center; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .input-dark {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .input-dark:focus {
+            border-color: #06b6d4;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+            outline: none;
+        }
+        .input-dark option { background: #1e293b; color: #fff; }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] { -moz-appearance: textfield; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+
+        @media print {
+            @page { size: A4; margin: 0; }
+            body { background: white; margin: 0; padding: 0; overflow: visible; }
+            .glass-panel { display: none !important; }
+            .preview-container { 
+                background: none; padding: 0; margin: 0; width: 100%; display: block; 
+            }
+            .a4-paper { 
+                box-shadow: none !important; width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: 20mm 15mm !important; 
+            }
+        }
+    </style>
+</head>
+<body class="bg-black text-slate-200 h-screen overflow-hidden flex">
+
+    <!-- LEFT PANEL -->
+    <div class="w-[450px] h-full flex flex-col glass-panel z-10 shadow-2xl relative">
+        <div class="p-6 border-b border-white/10 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl"></div>
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-400 flex items-center gap-2">
+                <svg class="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                เบิกค่าใช้จ่าย
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">V.1</p>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1 space-y-8">
+            <!-- 01 Document Info -->
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5 relative group hover:border-cyan-500/30 transition-all">
+                <h2 class="text-sm font-bold text-cyan-400 tracking-wider mb-4">01. ข้อมูลเอกสาร</h2>
+                <div class="space-y-3 relative">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">เลขที่เอกสาร</label>
+                        <input type="text" id="in-doc-no" oninput="sync('in-doc-no', 'out-doc-no')" class="input-dark w-full rounded-lg p-2.5 text-sm" placeholder="Ex. EXP-2569/001">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">วันที่ทำเอกสาร</label>
+                        <div class="flex gap-2">
+                            <select id="in-doc-d" onchange="syncTopDate()" class="input-dark w-20 rounded-lg p-2.5 text-sm"></select>
+                            <select id="in-doc-m" onchange="syncTopDate()" class="input-dark flex-1 rounded-lg p-2.5 text-sm"></select>
+                            <select id="in-doc-y" onchange="syncTopDate()" class="input-dark w-24 rounded-lg p-2.5 text-sm"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 02 Requester Info -->
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5 relative group hover:border-emerald-500/30 transition-all">
+                <h2 class="text-sm font-bold text-emerald-400 tracking-wider mb-4">02. ข้อมูลผู้เบิกและรายละเอียดงาน</h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">ชื่อลูกค้า / บริษัท</label>
+                        <input type="text" id="in-customer" oninput="sync('in-customer', 'out-customer')" class="input-dark w-full rounded-lg p-2.5 text-sm">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">เลือกผู้เบิก</label>
+                        <select id="select-name" onchange="handleNameSelect(this)" class="input-dark w-full rounded-lg p-2.5 text-sm mb-2">
+                            <option value="">-- เลือกรายชื่อ --</option>
+                            <option value="นาย เนติพล ชาญชนะโรจน์" data-pos="IT Support">นาย เนติพล ชาญชนะโรจน์</option>
+                        </select>
+                        <input type="text" id="in-name" oninput="sync('in-name', 'out-name'); sync('in-name', 'out-name-sign1'); sync('in-name', 'out-name-sign2');" class="input-dark w-full rounded-lg p-2.5 text-sm" placeholder="ระบุชื่อ-นามสกุล">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">ตำแหน่ง</label>
+                        <select id="select-pos" onchange="handlePosSelect(this)" class="input-dark w-full rounded-lg p-2.5 text-sm mb-2">
+                            <option value="">-- เลือกตำแหน่ง --</option>
+                            <option value="IT Support">IT Support</option>
+                        </select>
+                        <input type="text" id="in-position" oninput="sync('in-position', 'out-position'); sync('in-position', 'out-position-sign');" class="input-dark w-full rounded-lg p-2.5 text-sm" placeholder="ระบุตำแหน่ง">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">รายละเอียดงาน</label>
+                        <input type="text" id="in-work1" oninput="sync('in-work1', 'out-work1')" class="input-dark w-full rounded-lg p-2.5 text-sm mb-2" placeholder="บรรทัดที่ 1">
+                        <input type="text" id="in-work2" oninput="sync('in-work2', 'out-work2')" class="input-dark w-full rounded-lg p-2.5 text-sm" placeholder="บรรทัดที่ 2 (ถ้ามี)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 03 Work Period -->
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5 relative group hover:border-blue-500/30 transition-all">
+                <h2 class="text-sm font-bold text-blue-400 tracking-wider mb-4">03. ระยะเวลาการปฏิบัติงาน</h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">ตั้งแต่วันที่</label>
+                        <div class="flex gap-2">
+                            <select id="in-d1" onchange="syncDate('in-d1', 'out-d1')" class="input-dark w-20 rounded-lg p-2 text-sm text-center"></select>
+                            <select id="in-m1" onchange="sync('in-m1', 'out-m1')" class="input-dark flex-1 rounded-lg p-2 text-sm text-center"></select>
+                            <select id="in-y1" onchange="sync('in-y1', 'out-y1')" class="input-dark w-24 rounded-lg p-2 text-sm text-center"></select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">ถึงวันที่</label>
+                        <div class="flex gap-2">
+                            <select id="in-d2" onchange="syncDate('in-d2', 'out-d2')" class="input-dark w-20 rounded-lg p-2 text-sm text-center"></select>
+                            <select id="in-m2" onchange="sync('in-m2', 'out-m2')" class="input-dark flex-1 rounded-lg p-2 text-sm text-center"></select>
+                            <select id="in-y2" onchange="sync('in-y2', 'out-y2')" class="input-dark w-24 rounded-lg p-2 text-sm text-center"></select>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <label class="block text-xs text-slate-400 mb-1">รูปแบบ</label>
+                        <select id="in-travel-type" onchange="updateTravelType()" class="input-dark w-full rounded-lg p-2.5 text-sm">
+                            <option value="single">เดินทางเฉพาะข้าพเจ้า</option>
+                            <option value="group">คณะเดินทาง</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 04 Expenses -->
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5 relative group hover:border-purple-500/30 transition-all">
+                <h2 class="text-sm font-bold text-purple-400 tracking-wider mb-4 flex justify-between items-center">
+                    04. ค่าใช้จ่าย
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs text-slate-300">1. ค่าพาหนะ/ที่จอดรถ</label>
+                        <input type="number" id="in-car" oninput="calc()" class="input-dark w-28 rounded p-1.5 text-right text-sm" placeholder="0">
+                    </div>
+                    <div class="pt-2 border-t border-white/5">
+                        <label class="block text-xs text-slate-300 mb-2">2. ค่าเบี้ยเลี้ยง</label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-500 uppercase">Rate</span>
+                            <input type="number" id="in-rate" value="500" oninput="calc()" class="input-dark w-20 rounded p-1.5 text-center text-sm">
+                            <span class="text-[10px] text-slate-500 uppercase">x Days</span>
+                            <input type="number" id="in-days" value="1" oninput="calc()" class="input-dark w-16 rounded p-1.5 text-center text-sm">
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-white/5">
+                        <label class="text-xs text-slate-300">3. ค่าน้ำมันเชื้อเพลิง</label>
+                        <input type="number" id="in-fuel" oninput="calc()" class="input-dark w-28 rounded p-1.5 text-right text-sm" placeholder="0">
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-white/5">
+                        <label class="text-xs text-slate-300">4. ค่าทางด่วน</label>
+                        <input type="number" id="in-toll" oninput="calc()" class="input-dark w-28 rounded p-1.5 text-right text-sm" placeholder="0">
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-white/5">
+                        <label class="text-xs text-slate-300">5. ค่าใช้จ่ายอื่น</label>
+                        <input type="number" id="in-other" oninput="calc()" class="input-dark w-28 rounded p-1.5 text-right text-sm" placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
+                <div class="flex items-center justify-between">
+                    <label class="text-sm font-bold text-slate-300">05. หลักฐานแนบ (ฉบับ)</label>
+                    <input type="number" id="in-docs-count" oninput="sync('in-docs-count', 'out-docs-count')" class="input-dark w-20 rounded p-1.5 text-center text-sm" placeholder="0">
+                </div>
+            </div>
+            
+            <div class="h-4"></div>
+        </div>
+
+        <div class="p-5 border-t border-white/10 bg-black/40 backdrop-blur-md grid grid-cols-2 gap-4">
+            <button onclick="exportDoc('jpg')" class="group relative py-3 px-4 rounded-xl font-medium text-white overflow-hidden bg-slate-800 hover:bg-slate-700 transition-all">
+                <div class="relative flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Save JPG
+                </div>
+            </button>
+            <button onclick="exportDoc('pdf')" class="group relative py-3 px-4 rounded-xl font-medium text-white overflow-hidden transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]">
+                <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 group-hover:scale-105 transition-transform duration-300"></div>
+                <div class="relative flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Save / Print PDF
+                </div>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- PREVIEW AREA -->
+    <div class="flex-1 preview-container" id="print-area">
+        <div class="a4-paper" id="a4-document">
+            
+            <div style="display: flex; align-items: center; justify-content: flex-start; margin-left: 5%; margin-bottom: 25px;">
+                <img src="LOGO.png" alt="CUBIC PLUS LOGO" style="width: 75px; height: auto; margin-right: 20px;">
+                <div style="line-height: 1.5; text-align: left;">
+                    <strong style="font-size: 15px;">บริษัท คิวบิค พลัส คอมเมอร์เชียล จำกัด</strong><br> <span style="font-size: 12.5px;"> 339/25 ม.5 ถ.พุทธรักษา ต.แพรกษาใหม่ อ.เมืองสมุทรปราการ จ.สมุทรปราการ 10280<br>
+                        Call Center: 02-001-4902 Email: sales@cubicplus.co.th<br>
+                        Website https://www.cubicplus.co.th
+                    </span>
+                </div>
+            </div>
+
+            <div style="text-align: center; font-weight: bold; font-size: 16px; margin: 30px 0 25px 0;"> ใบเบิกค่าใช้จ่ายในการเดินทางไปปฏิบัติงาน
+            </div>
+
+            <div style="text-align: right; margin-bottom: 20px;">
+                เลขที่ <div class="field-box" style="width: 200px;"><div id="out-doc-no" class="text-value"></div></div><br>
+                <div style="margin-top: 5px;">วันที่ <div class="field-box" style="width: 200px; justify-content: center;"><div id="out-date" class="text-value"></div></div></div>
+            </div>
+
+            <div class="doc-row">
+                ชื่อลูกค้า บริษัท <div class="field-box flex-1 ml-2"><div id="out-customer" class="text-value"></div></div>
+            </div>
+            <div class="doc-row" style="padding-left: 40px;">
+                ข้าพเจ้า <div class="field-box" style="width: 300px; margin: 0 10px;"><div id="out-name" class="text-value"></div></div>
+                ตำแหน่ง <div class="field-box flex-1 ml-2"><div id="out-position" class="text-value"></div></div>
+            </div>
+            
+            <div class="doc-row" style="margin-bottom: 5px;">
+                เดินทางไปปฏิบัติงาน <div class="field-box flex-1 ml-2"><div id="out-work1" class="text-value"></div></div>
+            </div>
+            <div class="doc-row" style="margin-bottom: 25px;">
+                <div class="field-box w-full"><div id="out-work2" class="text-value"></div></div>
+            </div>
+
+            <div class="doc-row">
+                ตั้งแต่วันที่ <div class="field-box" style="width: 40px; margin: 0 5px; justify-content: center;"><div id="out-d1" class="text-value"></div></div>
+                เดือน <div class="field-box" style="width: 80px; margin: 0 5px; justify-content: center;"><div id="out-m1" class="text-value"></div></div>
+                พ.ศ. <div class="field-box" style="width: 50px; margin: 0 5px; justify-content: center;"><div id="out-y1" class="text-value"></div></div>
+                ถึงวันที่ <div class="field-box" style="width: 40px; margin: 0 5px; justify-content: center;"><div id="out-d2" class="text-value"></div></div>
+                เดือน <div class="field-box" style="width: 80px; margin: 0 5px; justify-content: center;"><div id="out-m2" class="text-value"></div></div>
+                พ.ศ. <div class="field-box" style="width: 50px; margin: 0 5px; justify-content: center;"><div id="out-y2" class="text-value"></div></div>
+            </div>
+            
+            <div class="doc-row">
+                รวมเวลาไปปฏิบัติงานครั้งนี้ <div class="field-box" style="width: 60px; margin: 0 10px; justify-content: center;"><div id="out-days-total" class="text-value">1</div></div> วัน
+            </div>
+
+            <div class="doc-row" style="align-items: center; margin-top: 15px;">
+                ข้าพเจ้าขอเบิกค่าใช้จ่ายในการเดินทางไปปฏิบัติงานสำหรับ 
+                <span id="chk-single" style="margin: 0 5px 0 15px; font-size: 16px;">◉</span> <label>ข้าพเจ้า</label> <span id="chk-group" style="margin: 0 5px 0 15px; font-size: 16px;">◯</span> <label>คณะเดินทาง ดังนี้</label>
+            </div>
+
+            <table class="doc-table">
+                <tr>
+                    <td class="col-desc">1. ค่าพาหนะ/ค่าที่จอดรถ</td>
+                    <td class="col-amt"><div id="out-car" class="text-value"></div></td>
+                    <td class="col-unit">บาท</td>
+                </tr>
+                <tr>
+                    <td class="col-desc">
+                        2.ค่าเบี้ยเลี้ยงอัตราวันละ <div class="field-box" style="width: 50px; justify-content: center; margin: 0 5px;"><div id="out-rate" class="text-value">500</div></div> บาท 
+                        <span style="margin-left: 10px;"></span> <div class="field-box" style="width: 50px; justify-content: center; margin: 0 5px;"><div id="out-days" class="text-value">1</div></div> วัน
+                    </td>
+                    <td class="col-amt"><div id="out-allowance" class="text-value">500</div></td>
+                    <td class="col-unit">บาท</td>
+                </tr>
+                <tr>
+                    <td class="col-desc">3.ค่าน้ำมันเชื้อเพลิง</td>
+                    <td class="col-amt"><div id="out-fuel" class="text-value"></div></td>
+                    <td class="col-unit">บาท</td>
+                </tr>
+                <tr>
+                    <td class="col-desc">4.ค่าทางด่วน</td>
+                    <td class="col-amt"><div id="out-toll" class="text-value"></div></td>
+                    <td class="col-unit">บาท</td>
+                </tr>
+                <tr>
+                    <td class="col-desc">5.ค่าใช้จ่ายอื่น</td>
+                    <td class="col-amt"><div id="out-other" class="text-value"></div></td>
+                    <td class="col-unit">บาท</td>
+                </tr>
+            </table>
+
+            <div class="doc-row" style="justify-content: flex-end; margin-right: 12%;">
+                รวมเงินทั้งสิ้น <div class="field-box" style="width: 150px; justify-content: center; margin: 0 10px;"><div id="out-grand-total" class="text-value">500</div></div> บาท
+            </div>
+
+            <div class="doc-row" style="margin-top: 20px;">
+                จำนวนเงิน (ตัวอักษร) <div class="field-box flex-1 ml-2"><div id="out-baht-text" class="text-value">ห้าร้อยบาทถ้วน</div></div>
+            </div>
+
+            <div style="padding-left: 60px; margin-top: 35px;">
+                ข้าพเจ้าขอรับรองว่ารายการที่กล่าวมาข้างต้นเป็นความจริงตามที่เบิกจ่ายเพื่อประโยชน์ของบริษัท
+            </div>
+            <div class="doc-row" style="margin-top: -5px;"> 
+                จริงโดยมีหลักฐานการจ่ายที่ส่งมาด้วย จำนวน <div class="field-box" style="width: 100px; justify-content: center; margin: 0 10px;"><div id="out-docs-count" class="text-value"></div></div> ฉบับ
+            </div>
+
+            <table style="width: 100%; margin-top: 40px; border: none;">
+                <tr>
+                    <td style="width: 50%; vertical-align: top; text-align: left; padding-top: 50px; border: none; line-height: 2;">
+                        อนุมัติให้จ่ายได้<br>
+                        ลงชื่อ <div class="field-box" style="width: 250px;"></div><br>
+                        <span style="margin-left: 35px;">(</span><div class="field-box" style="width: 200px; justify-content: center;"></div><span>)</span>
+                    </td>
+                    <td style="width: 50%; vertical-align: top; text-align: center; border: none; line-height: 2;">
+                        ลงชื่อ <div class="field-box" style="width: 170px; justify-content: center;"><div id="out-name-sign1" class="text-value"></div></div> ผู้ขอเบิก/ผู้รับเงิน<br>
+                        (<div class="field-box" style="width: 220px; justify-content: center;"><div id="out-name-sign2" class="text-value"></div></div>)<br>
+                        ตำแหน่ง <div class="field-box" style="width: 200px; justify-content: center;"><div id="out-position-sign" class="text-value"></div></div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    </div>
+
+    <script>
+        function populateDateDropdowns() {
+            const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            
+            let dayOpts = '<option value="">วัน</option>';
+            for(let i=1; i<=31; i++) {
+                let val = i.toString().padStart(2, '0');
+                dayOpts += `<option value="${val}">${val}</option>`;
+            }
+            
+            let monthOpts = '<option value="">เดือน</option>';
+            months.forEach(m => monthOpts += `<option value="${m}">${m}</option>`);
+            
+            // ปี พ.ศ. เริ่มที่ 2569
+            let yearOpts = '<option value="">พ.ศ.</option>';
+            let startYear = 2569;
+            for(let i=startYear; i<=startYear+5; i++) {
+                yearOpts += `<option value="${i}">${i}</option>`;
+            }
+
+            ['in-doc-d', 'in-d1', 'in-d2'].forEach(id => document.getElementById(id).innerHTML = dayOpts);
+            ['in-doc-m', 'in-m1', 'in-m2'].forEach(id => document.getElementById(id).innerHTML = monthOpts);
+            ['in-doc-y', 'in-y1', 'in-y2'].forEach(id => document.getElementById(id).innerHTML = yearOpts);
+        }
+
+        function syncDate(inputId, outputId) {
+            const val = document.getElementById(inputId).value;
+            document.getElementById(outputId).textContent = val;
+        }
+
+        function handleNameSelect(select) {
+            const nameInput = document.getElementById('in-name');
+            const posInput = document.getElementById('in-position');
+            const posSelect = document.getElementById('select-pos');
+
+            nameInput.value = select.value;
+            const selectedOption = select.options[select.selectedIndex];
+            const pos = selectedOption.getAttribute('data-pos');
+            if(pos) {
+                posInput.value = pos;
+                posSelect.value = pos;
+            }
+
+            sync('in-name', 'out-name');
+            sync('in-name', 'out-name-sign1');
+            sync('in-name', 'out-name-sign2');
+            sync('in-position', 'out-position');
+            sync('in-position', 'out-position-sign');
+        }
+
+        function handlePosSelect(select) {
+            const posInput = document.getElementById('in-position');
+            posInput.value = select.value;
+            sync('in-position', 'out-position');
+            sync('in-position', 'out-position-sign');
+        }
+
+        function syncTopDate() {
+            const d = document.getElementById('in-doc-d').value;
+            const m = document.getElementById('in-doc-m').value;
+            const y = document.getElementById('in-doc-y').value;
+            let str = "";
+            if(d || m || y) str = `${d} ${m} ${y}`.trim();
+            document.getElementById('out-date').textContent = str;
+        }
+
+        function sync(inputId, outputId) {
+            const inputEl = document.getElementById(inputId);
+            const outEl = document.getElementById(outputId);
+            if(!inputEl || !outEl) return;
+            outEl.textContent = inputEl.value;
+
+            const container = outEl.parentElement;
+            outEl.style.fontSize = '14px'; 
+            let fontSize = 14;
+            
+            setTimeout(() => {
+                while (outEl.scrollWidth > container.clientWidth && fontSize > 8) {
+                    fontSize -= 0.5;
+                    outEl.style.fontSize = fontSize + 'px';
+                }
+            }, 0);
+        }
+
+        function updateTravelType() {
+            const type = document.getElementById('in-travel-type').value;
+            if(type === 'single') {
+                document.getElementById('chk-single').textContent = '◉';
+                document.getElementById('chk-group').textContent = '◯';
+            } else {
+                document.getElementById('chk-single').textContent = '◯';
+                document.getElementById('chk-group').textContent = '◉';
+            }
+        }
+
+        function calc() {
+            let rate = parseFloat(document.getElementById('in-rate').value) || 0;
+            let days = parseFloat(document.getElementById('in-days').value) || 0;
+            let allowance = rate * days;
+            
+            document.getElementById('out-rate').textContent = rate > 0 ? rate : '';
+            document.getElementById('out-days').textContent = days > 0 ? days : '';
+            document.getElementById('out-days-total').textContent = days > 0 ? days : '';
+            document.getElementById('out-allowance').textContent = allowance > 0 ? allowance : '';
+
+            let car = parseFloat(document.getElementById('in-car').value) || 0;
+            let fuel = parseFloat(document.getElementById('in-fuel').value) || 0;
+            let toll = parseFloat(document.getElementById('in-toll').value) || 0;
+            let other = parseFloat(document.getElementById('in-other').value) || 0;
+
+            document.getElementById('out-car').textContent = car > 0 ? car : '';
+            document.getElementById('out-fuel').textContent = fuel > 0 ? fuel : '';
+            document.getElementById('out-toll').textContent = toll > 0 ? toll : '';
+            document.getElementById('out-other').textContent = other > 0 ? other : '';
+
+            let grandTotal = car + allowance + fuel + toll + other;
+            document.getElementById('out-grand-total').textContent = grandTotal > 0 ? grandTotal : '';
+            document.getElementById('out-baht-text').textContent = grandTotal > 0 ? ThaiNumberToText(grandTotal) : '';
+        }
+
+        function ThaiNumberToText(amount) {
+            let numberStr = Math.floor(amount).toString();
+            let TxtNumArr = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า", "สิบ"];
+            let TxtDigitArr = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];
+            let BahtText = "";
+            if (numberStr === "0") return "ศูนย์บาทถ้วน";
+            for (let i = 0; i < numberStr.length; i++) {
+                let val = parseInt(numberStr.charAt(i));
+                let pos = numberStr.length - i - 1;
+                if (val !== 0) {
+                    if (pos === 1 && val === 1) BahtText += TxtDigitArr[pos];
+                    else if (pos === 1 && val === 2) BahtText += "ยี่" + TxtDigitArr[pos];
+                    else if (pos === 0 && val === 1 && numberStr.length > 1) BahtText += "เอ็ด";
+                    else BahtText += TxtNumArr[val] + TxtDigitArr[pos];
+                }
+            }
+            return BahtText + "บาทถ้วน";
+        }
+
+        async function exportDoc(type) {
+            if (type === 'pdf') {
+                window.print(); 
+            } else if (type === 'jpg') {
+                try {
+                    const paper = document.getElementById('a4-document');
+                    const canvas = await html2canvas(paper, { 
+                        scale: 2, 
+                        useCORS: true, 
+                        allowTaint: true, 
+                        backgroundColor: "#ffffff",
+                        scrollY: -window.scrollY 
+                    });
+                    
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const personName = document.getElementById('in-name').value || 'ค่าใช้จ่าย';
+                    const fileName = 'ใบเบิก_' + personName;
+
+                    const link = document.createElement('a');
+                    link.download = fileName + '.jpg';
+                    link.href = imgData;
+                    link.click();
+                } catch (err) {
+                    alert('แนะนำให้รันบน Live Server หรือปิด CORS ใน Browser ครับ');
+                    console.error("html2canvas Error: ", err);
+                }
+            }
+        }
+
+        window.onload = () => {
+            populateDateDropdowns();
+            calc();
+        };
+    </script>
+</body>
+</html>

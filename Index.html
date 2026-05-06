@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Executive Portal | Premium Experience</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;400;600&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #6366f1;
+            --ai-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif;
+            background: #fdfeff;
+            color: #1e293b;
+            overflow-x: hidden;
+            letter-spacing: -0.01em;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.05) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.05) 0px, transparent 50%);
+            z-index: -1;
+        }
+
+        .premium-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.04);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .premium-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent);
+        }
+
+        .ai-card {
+            background: linear-gradient(white, white) padding-box,
+                        var(--ai-gradient) border-box;
+            border: 2px solid transparent;
+        }
+
+        /* 🖥️ Full Page Viewer Settings */
+        #fullPageViewer {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            z-index: 100;
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #fullPageViewer.active {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 🔙 Floating Back Button */
+        .btn-back-float {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 110;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.85);
+            color: white;
+            border-radius: 16px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-back-float:hover {
+            transform: scale(1.1) rotate(-5deg);
+            background: #000;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.8s ease forwards; }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-4">
+
+<div class="bg-mesh"></div>
+
+<!-- 🔑 LOGIN SECTION -->
+<div id="loginSection" class="w-full max-w-[400px] animate-fade-in">
+    <div class="premium-card rounded-[3rem] p-12 text-center shadow-2xl">
+        <div class="mb-8 flex justify-center">
+            <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-xl">P</div>
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900 mb-2">Portal</h1>
+        <p class="text-slate-400 mb-8 text-sm uppercase tracking-widest">Executive Access</p>
+
+        <div class="space-y-4">
+            <input id="user" type="text" placeholder="Username" 
+                onkeypress="if(event.key === 'Enter') document.getElementById('pass').focus()"
+                class="w-full px-6 py-4 rounded-2xl bg-slate-50/50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all">
+            
+            <input id="pass" type="password" placeholder="Password" 
+                onkeypress="if(event.key === 'Enter') handleLogin()"
+                class="w-full px-6 py-4 rounded-2xl bg-slate-50/50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all">
+            
+            <button id="loginBtn" onclick="handleLogin()" class="w-full py-4 mt-4 bg-slate-900 text-white rounded-2xl font-semibold tracking-wide hover:bg-slate-800 transition-all active:scale-95 shadow-lg">
+                Sign In
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 📊 DASHBOARD SECTION -->
+<div id="welcomeSection" class="hidden w-full max-w-6xl animate-fade-in px-4">
+    <header class="flex justify-between items-end mb-10">
+        <div>
+            <h2 id="welcomeMsg" class="text-4xl font-bold text-slate-900 tracking-tight"></h2>
+            <p class="text-slate-500 mt-2 text-lg">จัดการระบบและข้อมูลของคุณที่นี่</p>
+        </div>
+        <button onclick="location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full border border-slate-200 hover:bg-red-50 hover:text-red-500 transition-all shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+    </header>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div onclick="openFullPage('Form.html')" class="premium-card p-8 rounded-[2.5rem] cursor-pointer group">
+            <div class="w-12 h-12 bg-blue-50 rounded-xl mb-6 flex items-center justify-center text-xl group-hover:bg-blue-500 group-hover:text-white transition-all">💰</div>
+            <h3 class="text-lg font-bold mb-1 text-slate-800">เบิกค่าใช้จ่าย</h3>
+            <p class="text-slate-400 text-sm">ส่งคำขอเบิกงบประมาณ</p>
+        </div>
+
+        <div onclick="openFullPage('oil.html')" class="premium-card p-8 rounded-[2.5rem] cursor-pointer group">
+            <div class="w-12 h-12 bg-orange-50 rounded-xl mb-6 flex items-center justify-center text-xl group-hover:bg-orange-500 group-hover:text-white transition-all">⛽</div>
+            <h3 class="text-lg font-bold mb-1 text-slate-800">คำนวณน้ำมัน</h3>
+            <p class="text-slate-400 text-sm">คำนวณอัตราสิ้นเปลือง</p>
+        </div>
+
+        <div onclick="openFullPage('Ai.html')" class="premium-card ai-card p-8 rounded-[2.5rem] cursor-pointer group">
+            <div class="w-12 h-12 bg-indigo-50 rounded-xl mb-6 flex items-center justify-center text-xl group-hover:bg-indigo-500 group-hover:text-white transition-all">🤖</div>
+            <h3 class="text-lg font-bold mb-1 text-slate-800">AI Assistant</h3>
+            <p class="text-slate-400 text-sm">ตรวจสอบประกัน ARS และช่วยเหลือ</p>
+        </div>
+    </div>
+</div>
+
+<!-- 🖥️ VIEWER MODAL (WITH FLOATING BACK BUTTON) -->
+<div id="fullPageViewer">
+    <!-- ปุ่มกลับแบบลอยตัว ไม่กินพื้นที่หน้าจอ -->
+    <div onclick="closeFullPage()" class="btn-back-float">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </div>
+    
+    <iframe id="mainIframe" class="w-full h-full border-none shadow-inner"></iframe>
+</div>
+
+<script>
+    // 🔗 เปลี่ยนเป็น URL ของคุณ
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTUr0CwjDhR2vCKaqkcQlNrwsLXfZlDp9vqpGQSxaktbyV_3dWY1OGvPdRLtFBhYCzWA/exec";
+
+    async function handleLogin(){
+        const user = document.getElementById('user').value;
+        const pass = document.getElementById('pass').value;
+        const btn = document.getElementById('loginBtn');
+
+        if(!user || !pass) return alert("กรุณาระบุข้อมูลให้ครบถ้วน");
+
+        btn.innerText = "Checking...";
+        btn.disabled = true;
+
+        try {
+            // ส่งข้อมูลไปเช็คที่ doGet (parameter user และ pass)
+            const response = await fetch(`${SCRIPT_URL}?user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+            const data = await response.json();
+
+            // เช็ค status จาก JSON ที่ส่งกลับมา (ปรับให้รองรับ status หรือ result)
+            if(data.status === "success" || data.result === "success") {
+                const loginSec = document.getElementById('loginSection');
+                const welcomeSec = document.getElementById('welcomeSection');
+                
+                loginSec.style.opacity = '0';
+                loginSec.style.transform = 'scale(0.9)';
+                
+                setTimeout(() => {
+                    loginSec.classList.add('hidden');
+                    welcomeSec.classList.remove('hidden');
+                    document.getElementById('welcomeMsg').innerText = "สวัสดี, " + (data.name || user);
+                }, 400);
+            } else {
+                alert(data.message || "Username หรือ Password ไม่ถูกต้อง");
+                btn.innerText = "Sign In";
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error("Login Error:", error);
+            alert("ไม่สามารถเชื่อมต่อระบบ Login ได้ (โปรดตรวจสอบการ Deploy ใน Apps Script เป็น 'Anyone')");
+            btn.innerText = "Sign In";
+            btn.disabled = false;
+        }
+    }
+
+    function openFullPage(url){
+        const user = document.getElementById('user').value || "Guest";
+        // ส่งตัวแปร user ไปยัง iframe ด้วย
+        const finalUrl = url.includes('?') ? `${url}&user=${user}` : `${url}?user=${user}`;
+        
+        document.getElementById('mainIframe').src = finalUrl;
+        document.getElementById('fullPageViewer').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFullPage(){
+        document.getElementById('fullPageViewer').classList.remove('active');
+        setTimeout(() => {
+            document.getElementById('mainIframe').src = "";
+            document.body.style.overflow = 'auto';
+        }, 500);
+    }
+</script>
+
+</body>
+</html>

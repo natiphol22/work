@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเบิกค่าเดินทาง</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = { 
+            theme: { 
+                extend: { 
+                    fontFamily: { sans: ['Sarabun', 'sans-serif'] },
+                    colors: {
+                        gold: '#C5A059',
+                        darkGold: '#8C6F39',
+                        onyx: '#0D0D0D'
+                    }
+                } 
+            } 
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #050505; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #C5A059; border-radius: 10px; }
+
+        .luxury-input {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(197, 160, 89, 0.15);
+            color: #E2E8F0;
+            padding: 10px 14px;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .luxury-input:focus { 
+            border-color: #C5A059; 
+            background: rgba(197, 160, 89, 0.05);
+            outline: none; 
+            box-shadow: 0 0 10px rgba(197, 160, 89, 0.1);
+        }
+
+        .paper {
+            background: #0D0D0D;
+            border: 1px solid rgba(197, 160, 89, 0.3);
+        }
+
+        @media print {
+            @page { size: A4; margin: 0; }
+            .no-print { display: none !important; }
+            #preview-pane { 
+                display: flex !important; 
+                width: 210mm !important; 
+                height: 297mm !important; 
+                padding: 10mm !important; 
+                background: #050505 !important;
+                justify-content: center;
+                align-items: flex-start;
+            }
+            .paper { 
+                width: 100% !important;
+                background: #0D0D0D !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-400 min-h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- แผงควบคุมด้านซ้าย -->
+    <div class="w-full md:w-[380px] h-screen flex flex-col border-r border-white/5 bg-onyx no-print">
+        <div class="p-8 border-b border-white/5">
+        </div>
+
+        <div class="p-6 space-y-6 flex-grow overflow-y-auto custom-scroll">
+            <!-- ข้อมูลพื้นฐาน -->
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">ชื่อผู้ขอเบิกเงิน</label>
+                    <input type="text" id="user-name" oninput="updateUI()" placeholder="ระบุชื่อ-นามสกุลของคุณ" class="luxury-input">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] text-gold font-bold uppercase tracking-wider">วัตถุประสงค์การเดินทาง</label>
+                    <textarea id="travel-purpose" oninput="updateUI()" placeholder="เช่น ไปปฏิบัติหน้าที่ตรวจเช็คหน้างาน..." class="luxury-input h-20 resize-none"></textarea>
+                </div>
+            </div>
+
+            <hr class="border-white/5">
+
+            <!-- ขาไป -->
+            <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+                <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">01 รายละเอียดขาไป</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="out-from" oninput="updateUI()" placeholder="ต้นทาง" class="luxury-input !text-xs">
+                    <input type="text" id="out-to" oninput="updateUI()" placeholder="ปลายทาง" class="luxury-input !text-xs">
+                </div>
+                <input type="number" id="dist-out" oninput="updateUI()" placeholder="ระยะทาง (กม.)" class="luxury-input !text-emerald-500 font-bold">
+            </div>
+
+            <!-- สวิตช์จุดแวะ -->
+            <div class="flex items-center justify-between px-2">
+                <span class="text-[10px] font-bold text-gold uppercase tracking-wider">เพิ่มจุดแวะระหว่างทาง</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="enable-waypoint" onchange="toggleWaypoint()" class="sr-only peer">
+                    <div class="w-9 h-5 bg-slate-800 rounded-full peer-checked:bg-gold/40 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gold after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+            </div>
+
+            <div id="waypoint-fields" class="hidden p-4 rounded-xl bg-gold/[0.03] border border-gold/10 space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="wp-from" oninput="updateUI()" placeholder="จากจุดแวะ" class="luxury-input !text-xs">
+                    <input type="text" id="wp-to" oninput="updateUI()" placeholder="ไปยัง..." class="luxury-input !text-xs">
+                </div>
+                <input type="number" id="dist-wp" oninput="updateUI()" placeholder="ระยะทางเพิ่ม (กม.)" class="luxury-input !text-gold font-bold">
+            </div>
+
+            <!-- ขากลับ -->
+            <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+                <div class="flex justify-between items-center">
+                    <p class="text-[10px] font-bold text-orange-500 uppercase tracking-widest">02 รายละเอียดขากลับ</p>
+                    <button onclick="copyFromOut()" class="text-[9px] bg-gold/10 hover:bg-gold/20 text-gold border border-gold/20 px-2 py-1 rounded transition-all">ใช้ข้อมูลเดียวกับขาไป</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="in-from" oninput="updateUI()" placeholder="ต้นทาง" class="luxury-input !text-xs">
+                    <input type="text" id="in-to" oninput="updateUI()" placeholder="ปลายทาง" class="luxury-input !text-xs">
+                </div>
+                <input type="number" id="dist-in" oninput="updateUI()" placeholder="ระยะทาง (กม.)" class="luxury-input !text-orange-500 font-bold">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="text-[9px] text-slate-500 font-bold uppercase">บาท ต่อ กม.</label>
+                    <input type="number" id="rate" value="3.66" step="0.01" oninput="updateUI()" class="luxury-input !text-gold font-bold">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="openMaps()" class="w-full h-[40px] border border-gold/30 rounded-lg text-[10px] font-bold text-gold hover:bg-gold hover:text-black transition-all">แผนที่</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 border-t border-white/5">
+            <button onclick="window.print()" class="w-full py-4 bg-gradient-to-r from-gold to-darkGold text-black rounded-xl font-bold text-sm shadow-xl hover:brightness-110 transition-all">
+                พิมพ์รายงาน (PDF)
+            </button>
+        </div>
+    </div>
+
+    <!-- พรีวิว -->
+    <div id="preview-pane" class="flex-1 bg-black p-8 md:p-12 overflow-y-auto flex justify-center items-start">
+        <div class="paper w-full max-w-[580px] rounded-[2.5rem] p-10 relative">
+            
+            <div class="flex justify-between items-start mb-6 border-b border-gold/20 pb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-white tracking-tight">ใบสรุปค่าเดินทาง</h2>
+                    <p class="text-[10px] text-gold font-bold mt-0.5 tracking-widest uppercase">รายงานการเดินทางปฏิบัติหน้าที่</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] text-slate-500 font-bold">วันที่เอกสาร</p>
+                    <p id="v-date" class="text-xs font-bold text-white">-</p>
+                </div>
+            </div>
+
+            <!-- วัตถุประสงค์ -->
+            <div class="mb-8 p-4 rounded-2xl bg-white/[0.03] border-l-2 border-gold">
+                <p class="text-[9px] text-gold font-bold uppercase mb-1">วัตถุประสงค์การเดินทาง</p>
+                <p id="v-purpose" class="text-[13px] text-slate-200 leading-relaxed">ยังไม่ได้ระบุวัตถุประสงค์</p>
+            </div>
+
+            <!-- ตารางข้อมูล -->
+            <div class="space-y-2 mb-8">
+                <div class="flex items-center gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                    <div class="text-emerald-500 text-[10px] font-bold min-w-[40px]">ขาไป</div>
+                    <div class="flex-grow grid grid-cols-2 text-[12px]">
+                        <div class="pl-3"><span id="v-out-from" class="text-white">-</span></div>
+                        <div class="pl-3"><span id="v-out-to" class="text-white">-</span></div>
+                    </div>
+                    <div class="text-right"><span id="v-dist-out" class="text-[13px] font-bold text-emerald-400">0.00</span> <span class="text-[9px]">กม.</span></div>
+                </div>
+
+                <div id="v-wp-row" class="hidden flex items-center gap-4 p-3 rounded-xl bg-gold/5 border border-gold/20">
+                    <div class="text-gold text-[10px] font-bold min-w-[40px]">จุดแวะ</div>
+                    <div class="flex-grow grid grid-cols-2 text-[12px]">
+                        <div class="pl-3"><span id="v-wp-from" class="text-white">-</span></div>
+                        <div class="pl-3"><span id="v-wp-to" class="text-white">-</span></div>
+                    </div>
+                    <div class="text-right"><span id="v-dist-wp" class="text-[13px] font-bold text-gold">0.00</span> <span class="text-[9px]">กม.</span></div>
+                </div>
+
+                <div class="flex items-center gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                    <div class="text-orange-500 text-[10px] font-bold min-w-[40px]">ขากลับ</div>
+                    <div class="flex-grow grid grid-cols-2 text-[12px]">
+                        <div class="pl-3"><span id="v-in-from" class="text-white">-</span></div>
+                        <div class="pl-3"><span id="v-in-to" class="text-white">-</span></div>
+                    </div>
+                    <div class="text-right"><span id="v-dist-in" class="text-[13px] font-bold text-orange-400">0.00</span> <span class="text-[9px]">กม.</span></div>
+                </div>
+            </div>
+
+            <!-- สรุปเงิน -->
+            <div class="p-6 rounded-2xl bg-black border border-gold/20 shadow-inner">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <p class="text-[9px] text-slate-500 font-bold mb-1 uppercase">ระยะทางรวม</p>
+                        <p class="text-xl font-bold text-white"><span id="v-total-km">0.00</span> กม.</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] text-slate-500 font-bold mb-1 uppercase">อัตราค่าเดินทาง</p>
+                        <p id="v-formula" class="text-[10px] font-bold text-gold px-2 py-0.5 border border-gold/30 rounded-full">-</p>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-white/10 flex justify-between items-end">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase">รวมเงินสุทธิ</p>
+                    <p class="text-3xl font-bold text-white"><span id="v-total-money">0.00</span> <span class="text-sm text-gold">บาท</span></p>
+                </div>
+            </div>
+
+            <!-- ท้ายเอกสาร -->
+            <div class="mt-10 grid grid-cols-2 gap-12">
+                <div class="text-center">
+                    <div class="w-full h-px bg-white/10 mb-3"></div>
+                    <p id="v-user-name" class="text-[12px] font-bold text-white">-</p>
+                    <p class="text-[8px] text-slate-500 font-bold uppercase mt-1">ผู้ขอเบิกเงิน</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-px bg-white/10 mb-3"></div>
+                    <p class="text-[12px] font-bold text-white">( ............................................ )</p>
+                    <p class="text-[8px] text-slate-500 font-bold uppercase mt-1">ผู้อนุมัติ</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('v-date').textContent = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        function toggleWaypoint() {
+            const isEnabled = document.getElementById('enable-waypoint').checked;
+            document.getElementById('waypoint-fields').classList.toggle('hidden', !isEnabled);
+            document.getElementById('v-wp-row').classList.toggle('hidden', !isEnabled);
+            updateUI();
+        }
+
+        // ฟังก์ชัน Copy และสลับข้อมูลจากขาไป
+        function copyFromOut() {
+            const outFrom = document.getElementById('out-from').value;
+            const outTo = document.getElementById('out-to').value;
+            const distOut = document.getElementById('dist-out').value;
+
+            document.getElementById('in-from').value = outTo;
+            document.getElementById('in-to').value = outFrom;
+            document.getElementById('dist-in').value = distOut;
+            
+            updateUI();
+        }
+
+        function updateUI() {
+            const getVal = (id) => document.getElementById(id).value;
+            const setTxt = (id, val) => document.getElementById(id).textContent = val;
+            const isWpEnabled = document.getElementById('enable-waypoint').checked;
+
+            setTxt('v-user-name', getVal('user-name') || "( ............................................ )");
+            setTxt('v-purpose', getVal('travel-purpose') || "ยังไม่ได้ระบุวัตถุประสงค์");
+            setTxt('v-out-from', getVal('out-from') || "-");
+            setTxt('v-out-to', getVal('out-to') || "-");
+            setTxt('v-in-from', getVal('in-from') || "-");
+            setTxt('v-in-to', getVal('in-to') || "-");
+            
+            const dOut = parseFloat(getVal('dist-out')) || 0;
+            const dIn = parseFloat(getVal('dist-in')) || 0;
+            const rate = parseFloat(getVal('rate')) || 0;
+            let dWp = 0;
+
+            if (isWpEnabled) {
+                setTxt('v-wp-from', getVal('wp-from') || "-");
+                setTxt('v-wp-to', getVal('wp-to') || "-");
+                dWp = parseFloat(getVal('dist-wp')) || 0;
+                setTxt('v-dist-wp', dWp.toFixed(2));
+            }
+
+            setTxt('v-dist-out', dOut.toFixed(2));
+            setTxt('v-dist-in', dIn.toFixed(2));
+            
+            const totalKm = dOut + dIn + dWp;
+            setTxt('v-total-km', totalKm.toLocaleString(undefined, {minimumFractionDigits: 2}));
+            setTxt('v-total-money', (totalKm * rate).toLocaleString(undefined, {minimumFractionDigits: 2}));
+            setTxt('v-formula', `${rate.toFixed(2)} บาท/กม.`);
+        }
+
+        function openMaps() {
+            const s = encodeURIComponent(document.getElementById('out-from').value);
+            const e = encodeURIComponent(document.getElementById('out-to').value);
+            window.open(s && e ? `https://www.google.com/maps/dir/${s}/${e}` : `https://www.google.com/maps`, '_blank');
+        }
+    </script>
+</body>
+</html>
