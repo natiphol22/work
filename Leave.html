@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Sarabun', sans-serif; }
-        .glass-effect { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -26,12 +25,12 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm overflow-hidden relative">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-thermometer-half"></i></div>
                 <div>
                     <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">ลาป่วย</p>
-                    <h2 class="text-2xl font-bold" id="sick-val">0 / 0 <span class="text-sm font-normal text-slate-400">วัน</span></h2>
+                    <h2 class="text-2xl font-bold" id="sick-val">0 / 30 <span class="text-sm font-normal text-slate-400">วัน</span></h2>
                 </div>
             </div>
         </div>
@@ -55,31 +54,29 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 text-center md:text-left">
-        <div class="lg:col-span-3 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-slate-50 bg-slate-50/50">
-                <h3 class="font-bold text-lg">ประวัติการขอลาล่าสุด</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-slate-400 text-xs uppercase tracking-widest border-b border-slate-50">
-                            <th class="p-6 font-semibold">ประเภท</th>
-                            <th class="p-6 font-semibold">วันที่ลา</th>
-                            <th class="p-6 font-semibold">จำนวนวัน</th>
-                            <th class="p-6 font-semibold">สถานะ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-body" class="divide-y divide-slate-50 text-sm font-medium">
-                        </tbody>
-                </table>
-            </div>
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-50 bg-slate-50/50">
+            <h3 class="font-bold text-lg">ประวัติการขอลาล่าสุด</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-slate-400 text-xs uppercase tracking-widest border-b border-slate-50">
+                        <th class="p-6 font-semibold">ประเภท</th>
+                        <th class="p-6 font-semibold">วันที่ลา</th>
+                        <th class="p-6 font-semibold">จำนวนวัน</th>
+                        <th class="p-6 font-semibold">สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body" class="divide-y divide-slate-50 text-sm font-medium">
+                    </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden scale-95 transition-all">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
         <div class="p-6 flex justify-between items-center border-b border-slate-100">
             <h3 class="text-xl font-bold">ยื่นคำขอลา</h3>
             <button onclick="toggleModal(false)" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
@@ -115,78 +112,98 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzE_zj0ZjtsrGZprhQwQI8uyg8AUe264I5p8g4ForxVv4ODrYMlFIWNsEbJXxZnjLOfBw/exec'; // **อย่าลืมเปลี่ยนตรงนี้**
-    const CURRENT_USER = localStorage.getItem('username'); // ดึงจากระบบ Login เดิมของคุณ
+    // 1. ตั้งค่า URL และข้อมูลผู้ใช้
+    const SCRIPT_URL = 'ใส่_URL_Web_App_จาก_Google_Apps_Script_ที่นี่'; 
+    const CURRENT_USER = localStorage.getItem('username'); 
     const CURRENT_NAME = localStorage.getItem('name');
 
-    // 1. โหลดข้อมูลเมื่อเปิดหน้า
     window.onload = () => {
         if (!CURRENT_USER) {
-            alert('กรุณาเข้าสู่ระบบ');
+            alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
+            window.location.href = 'index.html'; // หรือหน้า login ของคุณ
             return;
         }
         loadLeaveData();
     };
 
+    // 2. ฟังก์ชันดึงข้อมูล Quota และ History (อ้างอิงลำดับคอลัมน์ใหม่)
     async function loadLeaveData() {
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getLeaveData&user=${CURRENT_USER}`);
             const data = await res.json();
             
-            // แสดงผล Quota
             if (data.quota) {
+                // ดึงค่า Limit และ Used มาแสดงผลตามการแมปคอลัมน์ใน Apps Script
                 document.getElementById('sick-val').innerHTML = `${data.quota.sick.used} / ${data.quota.sick.limit} <span class="text-sm font-normal text-slate-400">วัน</span>`;
                 document.getElementById('personal-val').innerHTML = `${data.quota.personal.used} / ${data.quota.personal.limit} <span class="text-sm font-normal text-slate-400">วัน</span>`;
                 document.getElementById('vacation-val').innerHTML = `${data.quota.vacation.used} / ${data.quota.vacation.limit} <span class="text-sm font-normal text-slate-400">วัน</span>`;
             }
 
-            // แสดงผลประวัติ
             const historyBody = document.getElementById('history-body');
-            historyBody.innerHTML = data.history.map(item => {
-                const statusColor = item.status === 'รออนุมัติ' ? 'bg-amber-100 text-amber-600' : 
-                                    item.status === 'อนุมัติแล้ว' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
-                return `
-                    <tr class="hover:bg-slate-50/50 transition-colors">
-                        <td class="p-6 font-bold text-slate-700">${item.type}</td>
-                        <td class="p-6 text-slate-500">${new Date(item.start).toLocaleDateString('th-TH')} - ${new Date(item.end).toLocaleDateString('th-TH')}</td>
-                        <td class="p-6 text-slate-500">${item.days} วัน</td>
-                        <td class="p-6">
-                            <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">${item.status}</span>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        } catch (e) { console.error('Error:', e); }
+            if (data.history && data.history.length > 0) {
+                historyBody.innerHTML = data.history.map(item => {
+                    const statusColor = item.status === 'รออนุมัติ' ? 'bg-amber-100 text-amber-600' : 
+                                      item.status === 'อนุมัติแล้ว' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
+                    
+                    // จัดรูปแบบวันที่ให้สวยงาม
+                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                    const start = new Date(item.start).toLocaleDateString('th-TH', options);
+                    const end = new Date(item.end).toLocaleDateString('th-TH', options);
+
+                    return `
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="p-6 font-bold text-slate-700">${item.type}</td>
+                            <td class="p-6 text-slate-500">${start} - ${end}</td>
+                            <td class="p-6 text-slate-500">${item.days} วัน</td>
+                            <td class="p-6">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">${item.status}</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                historyBody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400">ไม่มีประวัติการลา</td></tr>';
+            }
+        } catch (e) { console.error('Error loading data:', e); }
     }
 
-    // 2. ส่งฟอร์มการลา
+    // 3. ฟังก์ชันส่งคำขอลา
     document.getElementById('leaveForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
-        btn.innerText = 'กำลังส่งข้อมูล...';
+        btn.innerText = 'กำลังส่งคำขอ...';
+
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
 
         const formData = {
             action: 'submitLeave',
             user: CURRENT_USER,
             userName: CURRENT_NAME,
             leaveType: document.getElementById('leaveType').value,
-            startDate: document.getElementById('startDate').value,
-            endDate: document.getElementById('endDate').value,
+            startDate: startDate,
+            endDate: endDate,
             reason: document.getElementById('reason').value,
-            days: calculateDays(document.getElementById('startDate').value, document.getElementById('endDate').value)
+            days: calculateDays(startDate, endDate)
         };
 
         const params = new URLSearchParams(formData).toString();
         try {
-            await fetch(`${SCRIPT_URL}?${params}`);
-            alert('ส่งคำขอลาสำเร็จ!');
-            toggleModal(false);
-            loadLeaveData();
-        } catch (err) { alert('เกิดข้อผิดพลาด'); }
-        
-        btn.disabled = false;
-        btn.innerText = 'ยืนยันการส่งคำขอ';
+            const response = await fetch(`${SCRIPT_URL}?${params}`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                alert('ส่งคำขอลาเรียบร้อยแล้ว!');
+                toggleModal(false);
+                document.getElementById('leaveForm').reset();
+                loadLeaveData(); // โหลดข้อมูลใหม่
+            }
+        } catch (err) { 
+            alert('เกิดข้อผิดพลาดในการส่งข้อมูล'); 
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'ยืนยันการส่งคำขอ';
+        }
     };
 
     function calculateDays(start, end) {
