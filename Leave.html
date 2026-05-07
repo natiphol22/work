@@ -12,7 +12,6 @@
     <style>
         body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; color: #1e293b; overflow-x: hidden; }
         
-        /* Glassmorphism Ultra */
         .glass {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
@@ -29,7 +28,6 @@
                 radial-gradient(circle at 50% 50%, #ffffff 0%, transparent 100%);
         }
 
-        /* Loading Overlay */
         #main-loader {
             position: fixed; inset: 0; z-index: 999;
             background: #f8fafc;
@@ -46,11 +44,9 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Animations */
         .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Custom Scrollbar */
         .custom-scroll::-webkit-scrollbar { width: 5px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
@@ -75,7 +71,7 @@
                     Loading User...
                 </p>
             </div>
-            <button onclick="history.back()" class="p-3 glass rounded-2xl text-slate-500 hover:text-indigo-600 hover:scale-110 active:scale-95 transition-all">
+            <button onclick="logout()" class="p-3 glass rounded-2xl text-slate-500 hover:text-indigo-600 hover:scale-110 active:scale-95 transition-all">
                 <i data-lucide="log-out" class="w-6 h-6"></i>
             </button>
         </header>
@@ -98,7 +94,7 @@
                     </div>
 
                     <div class="space-y-6">
-                        <div class="group">
+                        <div>
                             <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ประเภทการลา</label>
                             <select id="leaveType" class="w-full mt-2 bg-white/50 border border-slate-200 rounded-2xl p-4 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all appearance-none cursor-pointer">
                                 <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
@@ -146,16 +142,17 @@
     </div>
 
     <script>
+        // *** ตั้งค่า URL ของ Google Apps Script ตรงนี้ ***
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyWXFDOao_Es9bh0tgluCbu5aM0UEVPEoTi0mPJLg3TbfY68QDqDVA5QtHYr3kmLxtCA/exec";
+        
+        // ข้อมูลผู้ใช้จำลอง (ในระบบจริงควรดึงจาก Login)
         const userData = JSON.parse(localStorage.getItem('userData')) || { user: 'natiphol', name: 'เนติพล' };
 
         window.onload = async () => {
             document.getElementById('userNameDisplay').innerHTML = `<span class="text-slate-400">Welcome,</span> คุณ${userData.name}`;
             
-            // โหลดข้อมูล
             await loadLeaveData();
             
-            // ซ่อน Loader เมื่อข้อมูลพร้อม
             const loader = document.getElementById('main-loader');
             loader.style.opacity = '0';
             setTimeout(() => loader.style.display = 'none', 500);
@@ -177,9 +174,9 @@
 
         function renderQuota(q) {
             const types = [
-                { label: 'ลาป่วย', used: q.sick.used, limit: q.sick.limit, icon: 'thermometer', color: 'text-rose-500', bg: 'bg-rose-50' },
-                { label: 'ลากิจ', used: q.personal.used, limit: q.personal.limit, icon: 'briefcase', color: 'text-amber-500', bg: 'bg-amber-50' },
-                { label: 'พักร้อน', used: q.vacation.used, limit: q.vacation.limit, icon: 'palmtree', color: 'text-emerald-500', bg: 'bg-emerald-50' }
+                { label: 'ลาป่วย', used: q.sick.used, limit: q.sick.limit, icon: 'thermometer', color: 'text-rose-500', bg: 'bg-rose-50', bar: 'bg-rose-500' },
+                { label: 'ลากิจ', used: q.personal.used, limit: q.personal.limit, icon: 'briefcase', color: 'text-amber-500', bg: 'bg-amber-50', bar: 'bg-amber-500' },
+                { label: 'พักร้อน', used: q.vacation.used, limit: q.vacation.limit, icon: 'palmtree', color: 'text-emerald-500', bg: 'bg-emerald-50', bar: 'bg-emerald-500' }
             ];
 
             document.getElementById('quotaContainer').innerHTML = types.map(t => `
@@ -194,7 +191,7 @@
                         </div>
                     </div>
                     <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div class="h-full ${t.color.replace('text', 'bg')} transition-all duration-1000" style="width: ${(t.used/t.limit)*100}%"></div>
+                        <div class="h-full ${t.bar} transition-all duration-1000" style="width: ${(t.used/t.limit)*100}%"></div>
                     </div>
                 </div>
             `).join('');
@@ -202,14 +199,14 @@
 
         function renderHistory(history) {
             const container = document.getElementById('leaveHistory');
-            document.getElementById('historyCount').innerText = history.length;
+            document.getElementById('historyCount').innerText = history ? history.length : 0;
             
             if (!history || history.length === 0) {
                 container.innerHTML = `<div class="text-center py-20 glass rounded-[2rem] text-slate-400 text-sm">ไม่พบประวัติการลา</div>`;
                 return;
             }
 
-            container.innerHTML = history.reverse().map(item => {
+            container.innerHTML = history.slice().reverse().map(item => {
                 const statusMap = {
                     'อนุมัติ': 'bg-emerald-500/10 text-emerald-600',
                     'ปฏิเสธ': 'bg-rose-500/10 text-rose-600',
@@ -240,9 +237,18 @@
             const start = document.getElementById('startDate').value;
             const end = document.getElementById('endDate').value;
             const reason = document.getElementById('reason').value;
+            const type = document.getElementById('leaveType').value;
 
             if (!start || !end || !reason) {
                 return Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกข้อมูลให้ครบถ้วน', confirmButtonColor: '#1e293b' });
+            }
+
+            // คำนวณจำนวนวัน
+            const diffTime = new Date(end) - new Date(start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+            if (diffDays <= 0) {
+                return Swal.fire({ icon: 'error', title: 'วันที่ไม่ถูกต้อง', text: 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น' });
             }
 
             const btn = document.getElementById('btnSubmit');
@@ -250,21 +256,20 @@
             btn.innerHTML = `<div class="spinner w-5 h-5 !border-2 !border-t-white"></div>`;
 
             try {
-                const type = document.getElementById('leaveType').value;
-                const diffTime = Math.abs(new Date(end) - new Date(start));
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-                const url = `${SCRIPT_URL}?action=submitLeave&user=${userData.user}&userName=${userData.name}&leaveType=${type}&startDate=${start}&endDate=${end}&days=${diffDays}&reason=${encodeURIComponent(reason)}`;
+                const url = `${SCRIPT_URL}?action=submitLeave&user=${userData.user}&userName=${userData.name}&leaveType=${encodeURIComponent(type)}&startDate=${start}&endDate=${end}&days=${diffDays}&reason=${encodeURIComponent(reason)}`;
+                
                 const res = await fetch(url);
                 const data = await res.json();
                 
                 if (data.status === "success") {
-                    Swal.fire({ icon: 'success', title: 'ส่งใบลาสำเร็จ', showConfirmButton: false, timer: 1500 });
+                    await Swal.fire({ icon: 'success', title: 'ส่งใบลาสำเร็จ', showConfirmButton: false, timer: 1500 });
                     document.getElementById('reason').value = "";
-                    loadLeaveData();
+                    await loadLeaveData();
+                } else {
+                    throw new Error(data.message);
                 }
             } catch (e) {
-                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด' });
+                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: e.message });
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<span>ส่งคำขอการลา</span> <i data-lucide="send" class="w-4 h-4"></i>`;
@@ -275,6 +280,19 @@
         function formatThaiDate(dateStr) {
             const d = new Date(dateStr);
             return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+        }
+
+        function logout() {
+            Swal.fire({
+                title: 'ยืนยันการออกจากระบบ?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1e293b',
+                confirmButtonText: 'ออก',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) history.back();
+            });
         }
     </script>
 </body>
