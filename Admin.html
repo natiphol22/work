@@ -3,237 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubicPlus | Admin Settings</title>
+    <title>CubicPlus | ระบบจัดการหลังบ้าน</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
-        .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
-        .card-neo { background: white; border: 1px solid #f1f5f9; border-radius: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02); }
-        tr:hover { background-color: #fcfdfe; }
-        input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; }
+        body { font-family: 'Kanit', sans-serif; background-color: #fcfdfe; color: #334155; }
+        .glass-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid #f1f5f9; }
+        
+        @keyframes shimmer { 0% { background-position: -450px 0; } 100% { background-position: 450px 0; } }
+        .skeleton {
+            background: linear-gradient(to right, #f1f5f9 8%, #f8fafc 18%, #f1f5f9 33%);
+            background-size: 800px 104px;
+            animation: shimmer 1.5s infinite linear;
+            border-radius: 1.5rem;
+        }
+
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .neo-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #f1f5f9; }
+        .neo-card:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); }
+        
+        .tab-active { background: #4f46e5; color: white; box-shadow: 0 8px 15px -3px rgba(79, 70, 229, 0.4); }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen">
 
-    <nav class="glass-header sticky top-0 z-50 px-6 py-4 mb-8">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
-                    <i data-lucide="settings" class="text-white w-6 h-6"></i>
+    <div id="fullLoader" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="spinner mb-4"></div>
+        <p id="loadingText" class="text-slate-500 text-sm font-medium animate-pulse">กำลังโหลดข้อมูลระบบ...</p>
+    </div>
+
+    <nav class="glass-header sticky top-0 z-50 px-6 py-3">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <i data-lucide="shield-check" class="text-white w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-900 leading-none">CubicPlus</h1>
+                        <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-widest">ระบบหลังบ้าน</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-xl font-bold text-slate-800 leading-none">Admin Control</h1>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">CubicPlus Management</p>
+                
+                <div class="hidden md:flex items-center gap-6">
+                    <div class="text-indigo-600 font-semibold text-sm flex items-center gap-2">
+                        <i data-lucide="calendar-check" class="w-4 h-4"></i> ลงเวลางาน
+                    </div>
+                    <div class="text-slate-400 font-medium text-sm flex items-center gap-2 cursor-not-allowed group relative">
+                        <i data-lucide="plane" class="w-4 h-4"></i> ระบบลางาน
+                        <span class="absolute -top-4 left-0 text-[8px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity italic whitespace-nowrap">Coming Soon</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <button onclick="toggleSettings()" class="p-2.5 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors flex items-center gap-2 text-sm text-slate-600">
-                    <i data-lucide="clock-cog" class="w-4 h-4"></i> ตั้งเวลา
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSettings()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-indigo-600 transition-all">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
                 </button>
-                <button onclick="exportToCSV()" class="px-4 py-2.5 bg-emerald-500 text-white rounded-2xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100 text-sm font-medium flex items-center gap-2">
-                    <i data-lucide="download" class="w-4 h-4"></i> Export
+                <button onclick="exportToCSV()" class="px-5 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-semibold hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-lg shadow-emerald-100">
+                    <i data-lucide="download" class="w-4 h-4"></i> <span class="hidden sm:inline">ส่งออกข้อมูล</span>
                 </button>
             </div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-6">
+    <main class="max-w-7xl mx-auto px-6 py-8">
         
-        <!-- Settings Panel -->
-        <div id="settingsPanel" class="hidden mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 animate-modal">
-            <div class="bg-indigo-900 rounded-[2.5rem] p-8 text-white shadow-xl shadow-indigo-100">
-                <div class="flex items-center gap-3 mb-6">
-                    <i data-lucide="alarm-clock" class="text-indigo-300"></i>
-                    <h2 class="font-bold tracking-tight">กำหนดเวลามาตรฐาน</h2>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] uppercase tracking-widest text-indigo-300 font-bold">เวลาเข้างาน</label>
-                        <input type="time" id="configIn" value="09:00" onchange="renderTable()" class="w-full mt-2 bg-indigo-800 border-none rounded-2xl p-3 text-white focus:ring-2 focus:ring-indigo-400 outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase tracking-widest text-indigo-300 font-bold">เวลาเลิกงาน</label>
-                        <input type="time" id="configOut" value="18:00" onchange="renderTable()" class="w-full mt-2 bg-indigo-800 border-none rounded-2xl p-3 text-white focus:ring-2 focus:ring-indigo-400 outline-none">
-                    </div>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
+            <div class="flex bg-slate-100 p-1 rounded-2xl h-fit">
+                <button id="viewWeek" onclick="setView('week')" class="tab-active flex-1 py-2.5 rounded-xl text-xs font-bold transition-all">สัปดาห์นี้</button>
+                <button id="viewMonth" onclick="setView('month')" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all">รายเดือน</button>
             </div>
-            <div class="bg-white rounded-[2.5rem] border border-slate-100 p-8 flex flex-col justify-center">
-                <p class="text-sm text-slate-500 leading-relaxed">
-                    <span class="font-bold text-indigo-600">Tip:</span> ระบบจะใช้ค่าเหล่านี้ในการประมวลผลสถานะ <br>
-                    - เข้างานหลัง <span class="inTimeText font-bold text-slate-700">09:00</span> = <span class="text-rose-500 font-bold">สาย</span> <br>
-                    - ออกงานก่อน <span class="outTimeText font-bold text-slate-700">18:00</span> = <span class="text-amber-500 font-bold">กลับก่อน</span>
-                </p>
+
+            <div class="relative">
+                <i data-lucide="users" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <select id="userFilter" onchange="renderData()" class="w-full pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none appearance-none focus:ring-4 focus:ring-indigo-500/5 transition-all">
+                    <option value="">พนักงานทุกคน</option>
+                </select>
+            </div>
+
+            <div class="relative">
+                <i data-lucide="list-filter" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <select id="typeFilter" onchange="renderData()" class="w-full pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none appearance-none focus:ring-4 focus:ring-indigo-500/5 transition-all">
+                    <option value="all">ทุกประเภทรายการ</option>
+                    <option value="เข้างาน">เฉพาะ "เข้างาน"</option>
+                    <option value="ออกงาน">เฉพาะ "ออกงาน"</option>
+                </select>
+            </div>
+
+            <div class="relative">
+                <i data-lucide="map-pin" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <select id="locFilter" onchange="renderData()" class="w-full pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none appearance-none focus:ring-4 focus:ring-indigo-500/5 transition-all text-indigo-600 font-bold">
+                    <option value="all">ทุกสถานที่</option>
+                    <option value="office">ออฟฟิศ (OFFICE)</option>
+                    <option value="on-site">ON-SITE</option>
+                    <option value="wfh">WFH</option>
+                </select>
+            </div>
+
+            <div id="monthContainer" class="hidden">
+                <input type="month" id="monthInput" onchange="renderData()" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all">
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="flex flex-col md:flex-row gap-4 mb-8">
-            <div class="relative flex-1">
-                <i data-lucide="calendar" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input type="month" id="filterMonth" onchange="loadAdminData()" class="w-full pl-12 pr-4 py-4 rounded-3xl border border-slate-100 bg-white text-sm focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all">
-            </div>
-            <div class="relative flex-[2]">
-                <i data-lucide="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input type="text" id="filterUser" placeholder="ค้นหาชื่อพนักงาน..." onkeyup="loadAdminData()" class="w-full pl-12 pr-4 py-4 rounded-3xl border border-slate-100 bg-white text-sm focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all">
+        <div id="skeleton" class="space-y-8">
+            <div class="h-6 w-48 skeleton"></div>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="h-24 skeleton"></div>
+                <div class="h-24 skeleton"></div>
+                <div class="h-24 skeleton"></div>
             </div>
         </div>
 
-        <div class="card-neo overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50/50">
-                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">ข้อมูลเวลา</th>
-                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">พนักงาน</th>
-                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">สถานะ</th>
-                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">สรุปงาน</th>
-                            <th class="p-6 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest text-slate-300 italic">Auth</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody" class="divide-y divide-slate-50"></tbody>
-                </table>
+        <div id="mainContent" class="hidden space-y-10 fade-in"></div>
+
+    </main>
+
+    <div id="memoModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 md:p-10 relative z-10 shadow-2xl scale-in">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 id="memoName" class="text-xl font-bold text-slate-900 leading-tight"></h3>
+                    <p id="memoType" class="text-[10px] text-indigo-500 font-black uppercase tracking-widest mt-1"></p>
+                </div>
+                <button onclick="closeMemo()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full hover:bg-rose-100 transition-all">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
             </div>
-            <div id="loader" class="py-20 text-center hidden"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-indigo-500"></i></div>
+            <div id="memoBody" class="text-slate-600 text-sm leading-relaxed p-6 bg-slate-50 rounded-3xl min-h-[120px] whitespace-pre-wrap border border-slate-100"></div>
+            <button onclick="closeMemo()" class="w-full mt-8 py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all">ตกลง</button>
         </div>
     </div>
 
-    <!-- Popup Modal -->
-    <div id="popupModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closePopup()"></div>
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 relative z-10 shadow-2xl transition-all">
-            <div id="popupUser" class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-4"></div>
-            <div id="popupText" class="text-slate-600 text-base leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto pr-2"></div>
-            <button onclick="closePopup()" class="w-full mt-10 py-4 bg-indigo-600 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">เข้าใจแล้ว</button>
+    <div id="settingsPanel" class="hidden fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6">
+        <div class="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 text-slate-900">ตั้งค่าเวลาทำงาน</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400">เวลาเข้างานมาตรฐาน</label>
+                    <input type="time" id="cfgIn" class="w-full bg-slate-50 border border-slate-100 p-4 rounded-2xl outline-none mt-1">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400">เวลาเลิกงานมาตรฐาน</label>
+                    <input type="time" id="cfgOut" class="w-full bg-slate-50 border border-slate-100 p-4 rounded-2xl outline-none mt-1">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="toggleSettings()" class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm">ยกเลิก</button>
+                <button onclick="saveAdminSettings()" class="flex-1 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm">บันทึก</button>
+            </div>
         </div>
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzE_zj0ZjtsrGZprhQwQI8uyg8AUe264I5p8g4ForxVv4ODrYMlFIWNsEbJXxZnjLOfBw/exec";
-        let displayData = []; // เก็บข้อมูลลำดับที่จะแสดงในตาราง
+        let rawHistory = [];
+        let currentView = 'week';
 
-        function toggleSettings() {
-            const panel = document.getElementById('settingsPanel');
-            panel.classList.toggle('hidden');
-        }
-
-        async function loadAdminData() {
-            const month = document.getElementById('filterMonth').value;
-            const target = document.getElementById('filterUser').value;
-            const tbody = document.getElementById('tbody');
-            const loader = document.getElementById('loader');
-            
-            tbody.innerHTML = '';
-            loader.classList.remove('hidden');
+        // Initialize App
+        async function init() {
+            document.getElementById('cfgIn').value = localStorage.getItem('cubic_cfg_in') || '09:00';
+            document.getElementById('cfgOut').value = localStorage.getItem('cubic_cfg_out') || '18:00';
+            lucide.createIcons();
 
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=getHistory&role=admin&month=${month}&targetUser=${target}`);
-                const rawData = await res.json();
-                displayData = [...rawData].reverse(); // เก็บข้อมูลล่าสุดขึ้นก่อน
-                loader.classList.add('hidden');
-                renderTable();
-            } catch (e) { 
-                loader.classList.add('hidden');
-                console.error("Fetch Error:", e);
-                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-rose-500 font-bold">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>`;
+                // Fetch Users & Filter out Admin
+                const userRes = await fetch(`${SCRIPT_URL}?action=getUsers`);
+                const users = await userRes.json();
+                const select = document.getElementById('userFilter');
+                users.filter(u => u.trim().toLowerCase() !== 'admin').forEach(u => select.add(new Option(u, u)));
+
+                // Fetch History & Filter out Admin
+                const res = await fetch(`${SCRIPT_URL}?action=getHistory&role=admin`);
+                const data = await res.json();
+                rawHistory = data.filter(item => item.name.trim().toLowerCase() !== 'admin');
+                
+                // UI Updates
+                document.getElementById('fullLoader').classList.add('hidden');
+                document.getElementById('skeleton').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                renderData();
+            } catch (e) {
+                console.error("Init Error:", e);
+                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณารีเฟรชหน้าจอ");
             }
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('tbody');
-            const configIn = document.getElementById('configIn').value;
-            const configOut = document.getElementById('configOut').value;
+        function setView(view) {
+            currentView = view;
+            document.getElementById('viewWeek').className = view === 'week' ? 'tab-active flex-1 py-2.5 rounded-xl text-xs font-bold transition-all' : 'flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all';
+            document.getElementById('viewMonth').className = view === 'month' ? 'tab-active flex-1 py-2.5 rounded-xl text-xs font-bold transition-all' : 'flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all';
             
-            document.querySelectorAll('.inTimeText').forEach(el => el.innerText = configIn);
-            document.querySelectorAll('.outTimeText').forEach(el => el.innerText = configOut);
+            const mCont = document.getElementById('monthContainer');
+            if (view === 'month') {
+                mCont.classList.remove('hidden');
+                const now = new Date();
+                document.getElementById('monthInput').value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
+            } else {
+                mCont.classList.add('hidden');
+            }
+            renderData();
+        }
 
-            if (displayData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-light italic">ไม่พบรายการข้อมูล</td></tr>`;
+        function renderData() {
+            const container = document.getElementById('mainContent');
+            const userFilter = document.getElementById('userFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const locFilter = document.getElementById('locFilter').value.toLowerCase();
+            const monthInput = document.getElementById('monthInput').value;
+            const cfgIn = document.getElementById('cfgIn').value;
+            const cfgOut = document.getElementById('cfgOut').value;
+
+            let filtered = [...rawHistory];
+
+            // 1. Name Filter
+            if (userFilter) filtered = filtered.filter(d => d.name === userFilter);
+            
+            // 2. Type Filter
+            if (typeFilter !== 'all') filtered = filtered.filter(d => d.type === typeFilter);
+            
+            // 3. Location Filter (Improved Logic)
+            if (locFilter !== 'all') {
+                filtered = filtered.filter(d => d.memo.toLowerCase().includes(locFilter));
+            }
+            
+            // 4. Time Filter
+            if (currentView === 'week') {
+                const limit = new Date(); limit.setDate(limit.getDate() - 7);
+                filtered = filtered.filter(d => new Date(d.timestamp) >= limit);
+            } else if (monthInput) {
+                filtered = filtered.filter(d => d.timestamp.startsWith(monthInput));
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="py-20 text-center text-slate-300 italic">ไม่พบประวัติการทำรายการตามเงื่อนไข</div>`;
                 return;
             }
 
-            tbody.innerHTML = displayData.map((item, index) => {
-                const dateObj = new Date(item.timestamp);
-                const isCheckIn = item.type.includes('เข้า');
-                const [confH, confM] = (isCheckIn ? configIn : configOut).split(':').map(Number);
-                
-                let timeColor = 'text-slate-700';
-                let statusLabel = item.type;
-                
-                if (isCheckIn) {
-                    if (dateObj.getHours() > confH || (dateObj.getHours() === confH && dateObj.getMinutes() > confM)) {
-                        timeColor = 'text-rose-500';
-                        statusLabel += ' (สาย)';
-                    }
-                } else {
-                    if (dateObj.getHours() < confH || (dateObj.getHours() === confH && dateObj.getMinutes() < confM)) {
-                        timeColor = 'text-amber-500';
-                        statusLabel += ' (กลับก่อน)';
-                    }
-                }
+            // Group by Date
+            const groups = filtered.reduce((acc, curr) => {
+                const dateKey = new Date(curr.timestamp).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                if (!acc[dateKey]) acc[dateKey] = [];
+                acc[dateKey].push(curr);
+                return acc;
+            }, {});
 
-                return `
-                    <tr>
-                        <td class="p-6">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] font-bold text-slate-400 tracking-wider mb-1">${dateObj.toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'2-digit'})}</span>
-                                <span class="text-xl font-bold ${timeColor}">${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</span>
-                            </div>
-                        </td>
-                        <td class="p-6 text-sm font-semibold text-slate-700">${item.name}</td>
-                        <td class="p-6 text-center">
-                            <span class="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${isCheckIn ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}">
-                                ${statusLabel}
-                            </span>
-                        </td>
-                        <td class="p-6">
-                            ${item.memo ? `<button onclick="viewMemo(${index})" class="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-xs font-medium hover:bg-indigo-100 transition-all">📝 อ่านสรุปงาน</button>` : '<span class="text-[10px] text-slate-300 font-bold italic">ไม่มีบันทึก</span>'}
-                        </td>
-                        <td class="p-6 text-right"><i data-lucide="check-circle-2" class="w-4 h-4 text-slate-200 ml-auto"></i></td>
-                    </tr>
-                `;
-            }).join('');
+            container.innerHTML = Object.keys(groups).map(date => `
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-900 border-l-4 border-indigo-600 pl-4 py-1">${date}</h2>
+                    <div class="grid grid-cols-1 gap-3">
+                        ${groups[date].map(item => renderRow(item, cfgIn, cfgOut)).join('')}
+                    </div>
+                </div>
+            `).join('');
             lucide.createIcons();
         }
 
-        // ฟังก์ชันใหม่: ใช้ Index เข้าถึงข้อมูล ป้องกัน Syntax Error จากข้อความยาวๆ
-        function viewMemo(index) {
-            const item = displayData[index];
-            if (!item) return;
+        function renderRow(item, cfgIn, cfgOut) {
+            const date = new Date(item.timestamp);
+            const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+            const isCheckIn = item.type === 'เข้างาน';
             
-            document.getElementById('popupUser').innerText = "Update By: " + item.name;
-            document.getElementById('popupText').innerText = item.memo || "ไม่มีข้อความ";
-            document.getElementById('popupModal').classList.remove('hidden');
+            let badge = '';
+            let timeColor = 'text-slate-900';
+            const [refH, refM] = (isCheckIn ? cfgIn : cfgOut).split(':').map(Number);
+            const actualH = date.getHours(), actualM = date.getMinutes();
+
+            if (isCheckIn && (actualH > refH || (actualH === refH && actualM > refM))) {
+                badge = `<span class="px-2 py-0.5 bg-rose-50 text-rose-500 text-[9px] font-bold rounded border border-rose-100">สาย</span>`;
+                timeColor = 'text-rose-600';
+            } else if (!isCheckIn && (actualH < refH || (actualH === refH && actualM < refM))) {
+                badge = `<span class="px-2 py-0.5 bg-amber-50 text-amber-500 text-[9px] font-bold rounded border border-amber-100">กลับก่อน</span>`;
+                timeColor = 'text-amber-600';
+            }
+
+            const locMatch = item.memo.match(/Location:\s*([^\n\r]+)/i);
+            const location = locMatch ? locMatch[1].toUpperCase() : 'OFFICE';
+            const memoBody = item.memo.replace(/Location:[^\n\r]+/i, '').trim();
+
+            return `
+                <div class="neo-card bg-white p-4 md:p-5 rounded-3xl flex flex-col md:flex-row md:items-center gap-4">
+                    <div class="flex items-center gap-4 flex-1">
+                        <div class="w-12 h-12 rounded-2xl ${isCheckIn ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-400'} flex items-center justify-center">
+                            <i data-lucide="${isCheckIn ? 'log-in' : 'log-out'}" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-slate-800">${item.name}</h3>
+                                <span class="text-[9px] px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full font-black uppercase">${location}</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-0.5 font-medium">${item.type} • Online System</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0">
+                        <div class="text-right">
+                            <div class="flex items-center gap-2 justify-end">
+                                ${badge}
+                                <span class="text-xl font-black ${timeColor}">${timeStr}</span>
+                            </div>
+                        </div>
+                        ${memoBody ? `
+                            <button onclick="viewMemo('${item.name}', '${item.type}', \`${memoBody.replace(/'/g, "\\'").replace(/\n/g, "\\n")}\`)" 
+                                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                                <i data-lucide="file-text" class="w-5 h-5"></i>
+                            </button>
+                        ` : '<div class="w-10 h-10"></div>'}
+                    </div>
+                </div>
+            `;
         }
 
-        function closePopup() { 
-            document.getElementById('popupModal').classList.add('hidden'); 
+        function viewMemo(name, type, text) {
+            document.getElementById('memoName').innerText = name;
+            document.getElementById('memoType').innerText = type + " • บันทึกข้อความ";
+            document.getElementById('memoBody').innerText = text;
+            document.getElementById('memoModal').classList.remove('hidden');
+        }
+
+        function closeMemo() { document.getElementById('memoModal').classList.add('hidden'); }
+        function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('hidden'); }
+        
+        function saveAdminSettings() {
+            localStorage.setItem('cubic_cfg_in', document.getElementById('cfgIn').value);
+            localStorage.setItem('cubic_cfg_out', document.getElementById('cfgOut').value);
+            renderData();
+            toggleSettings();
         }
 
         function exportToCSV() {
-            if (displayData.length === 0) return alert("ไม่มีข้อมูลให้ Export");
-            const headers = ["วันที่", "ชื่อ", "ประเภท", "สรุปงาน"];
-            const csvContent = "\uFEFF" + [headers.join(","), ...displayData.map(row => [
-                new Date(row.timestamp).toLocaleString('th-TH'), 
-                row.name, 
-                row.type, 
-                `"${(row.memo || '').replace(/"/g, '""')}"`
-            ].join(","))].join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const userFilter = document.getElementById('userFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const locFilter = document.getElementById('locFilter').value.toLowerCase();
+            
+            let filtered = rawHistory;
+            if (userFilter) filtered = filtered.filter(d => d.name === userFilter);
+            if (typeFilter !== 'all') filtered = filtered.filter(d => d.type === typeFilter);
+            if (locFilter !== 'all') filtered = filtered.filter(d => d.memo.toLowerCase().includes(locFilter));
+
+            const headers = ["วันที่เวลา", "ชื่อพนักงาน", "ประเภท", "บันทึก/สถานที่"];
+            const csvData = "\uFEFF" + [headers.join(","), ...filtered.map(r => {
+                const d = new Date(r.timestamp);
+                const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
+                return [dt, r.name, r.type, `"${r.memo.replace(/"/g, '""')}"`].join(",");
+            })].join("\n");
+
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `CubicPlus_Report_${document.getElementById('filterMonth').value}.csv`;
+            link.download = `CubicPlus_Report_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.csv`;
             link.click();
         }
 
-        window.onload = () => {
-            const now = new Date();
-            document.getElementById('filterMonth').value = now.getFullYear() + "-" + ("0" + (now.getMonth() + 1)).slice(-2);
-            loadAdminData();
-            lucide.createIcons();
-        };
+        window.onload = init;
     </script>
 </body>
 </html>
