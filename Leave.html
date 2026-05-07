@@ -3,120 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubicPlus | Leave Portal</title>
+    <title>CubicPlus | Premium Leave Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        :root { --primary: #6366f1; }
-        body { font-family: 'Kanit', sans-serif; background: #f8fafc; }
+        body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; color: #1e293b; overflow-x: hidden; }
         
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
+        /* Glassmorphism Ultra */
+        .glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
         }
-
-        .quota-card {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .quota-card:hover { transform: translateY(-5px); }
 
         .aura-bg {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1;
-            background: radial-gradient(circle at 10% 10%, #eff6ff 0%, transparent 40%),
-                        radial-gradient(circle at 90% 90%, #f5f3ff 0%, transparent 40%);
+            background: 
+                radial-gradient(circle at 0% 0%, #e0e7ff 0%, transparent 35%),
+                radial-gradient(circle at 100% 100%, #f5f3ff 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, #ffffff 0%, transparent 100%);
         }
 
-        /* สำหรับ Mobile-Friendly Scroll */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* Loading Overlay */
+        #main-loader {
+            position: fixed; inset: 0; z-index: 999;
+            background: #f8fafc;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid #e2e8f0; border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Animations */
+        .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="min-h-screen">
     <div class="aura-bg"></div>
 
-    <div class="max-w-4xl mx-auto space-y-8">
+    <div id="main-loader">
+        <div class="spinner mb-4"></div>
+        <p class="text-sm font-medium text-slate-500 animate-pulse">กำลังเตรียมข้อมูล...</p>
+    </div>
+
+    <div class="max-w-5xl mx-auto p-4 md:p-10 space-y-10">
         
-        <div class="flex justify-between items-center px-2">
+        <header class="flex justify-between items-end px-2 slide-up">
             <div>
-                <h1 class="text-2xl font-bold text-slate-800">Leave Management</h1>
-                <p id="userNameDisplay" class="text-slate-500 text-sm">Loading user data...</p>
+                <h1 class="text-3xl font-semibold text-slate-900 tracking-tight">Leave Portal</h1>
+                <p id="userNameDisplay" class="text-indigo-600 font-medium mt-1 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
+                    Loading User...
+                </p>
             </div>
-            <button onclick="history.back()" class="w-10 h-10 glass-panel rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors">
-                <i data-lucide="arrow-left"></i>
+            <button onclick="history.back()" class="p-3 glass rounded-2xl text-slate-500 hover:text-indigo-600 hover:scale-110 active:scale-95 transition-all">
+                <i data-lucide="log-out" class="w-6 h-6"></i>
             </button>
-        </div>
+        </header>
 
-        <div id="quotaContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="animate-pulse glass-panel h-32 rounded-[2rem]"></div>
-             <div class="animate-pulse glass-panel h-32 rounded-[2rem]"></div>
-             <div class="animate-pulse glass-panel h-32 rounded-[2rem]"></div>
-        </div>
+        <section id="quotaContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 slide-up" style="animation-delay: 0.1s">
+            <div class="h-36 glass rounded-[2.5rem] animate-pulse bg-white/50"></div>
+            <div class="h-36 glass rounded-[2.5rem] animate-pulse bg-white/50"></div>
+            <div class="h-36 glass rounded-[2.5rem] animate-pulse bg-white/50"></div>
+        </section>
 
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            <div class="lg:col-span-2 space-y-4">
-                <div class="glass-panel p-8 rounded-[2.5rem] space-y-5">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                            <i data-lucide="calendar-plus"></i>
+            <div class="lg:col-span-5 slide-up" style="animation-delay: 0.2s">
+                <div class="glass p-8 rounded-[3rem] border-white/60">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                            <i data-lucide="plus-circle" class="w-6 h-6"></i>
                         </div>
-                        <h2 class="text-lg font-bold text-slate-800">Request Leave</h2>
+                        <h2 class="text-xl font-semibold">สร้างใบลาใหม่</h2>
                     </div>
 
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Type</label>
-                            <select id="leaveType" class="w-full bg-slate-50/50 border border-slate-100 rounded-2xl p-3 outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                <option value="ลาป่วย">🤒 ลาป่วย</option>
-                                <option value="ลากิจ">💼 ลากิจ</option>
-                                <option value="ลาพักร้อน">🏝️ ลาพักร้อน</option>
+                    <div class="space-y-6">
+                        <div class="group">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ประเภทการลา</label>
+                            <select id="leaveType" class="w-full mt-2 bg-white/50 border border-slate-200 rounded-2xl p-4 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all appearance-none cursor-pointer">
+                                <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
+                                <option value="ลากิจ">💼 ลากิจ (Personal Leave)</option>
+                                <option value="ลาพักร้อน">🏝️ ลาพักร้อน (Vacation)</option>
                             </select>
                         </div>
+
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Start</label>
-                                <input type="date" id="startDate" class="w-full bg-slate-50/50 border border-slate-100 rounded-2xl p-3 text-sm">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">เริ่มวันที่</label>
+                                <input type="date" id="startDate" class="w-full mt-2 bg-white/50 border border-slate-200 rounded-2xl p-4 text-sm focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all">
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">End</label>
-                                <input type="date" id="endDate" class="w-full bg-slate-50/50 border border-slate-100 rounded-2xl p-3 text-sm">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ถึงวันที่</label>
+                                <input type="date" id="endDate" class="w-full mt-2 bg-white/50 border border-slate-200 rounded-2xl p-4 text-sm focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all">
                             </div>
                         </div>
+
                         <div>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Reason</label>
-                            <textarea id="reason" rows="3" class="w-full bg-slate-50/50 border border-slate-100 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="ระบุเหตุผลการลา..."></textarea>
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">เหตุผลการลา</label>
+                            <textarea id="reason" rows="3" class="w-full mt-2 bg-white/50 border border-slate-200 rounded-2xl p-4 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none" placeholder="ระบุรายละเอียดสั้นๆ..."></textarea>
                         </div>
-                        <button onclick="submitLeave()" id="btnSubmit" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
-                            <span>Submit Request</span>
+
+                        <button onclick="submitLeave()" id="btnSubmit" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold shadow-2xl shadow-slate-300 hover:bg-indigo-600 active:scale-[0.97] transition-all flex items-center justify-center gap-3 group">
+                            <span>ส่งคำขอการลา</span>
+                            <i data-lucide="send" class="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-3 space-y-4">
+            <div class="lg:col-span-7 space-y-6 slide-up" style="animation-delay: 0.3s">
                 <div class="flex justify-between items-center px-4">
-                    <h2 class="text-lg font-bold text-slate-800">History</h2>
-                    <span id="historyCount" class="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded-full font-bold">0 Items</span>
+                    <h2 class="text-xl font-semibold flex items-center gap-2">
+                        ประวัติการลา
+                        <span id="historyCount" class="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">0</span>
+                    </h2>
                 </div>
                 
-                <div id="leaveHistory" class="space-y-3 overflow-y-auto max-h-[600px] pr-2 no-scrollbar">
+                <div id="leaveHistory" class="space-y-4 overflow-y-auto max-h-[600px] pr-2 custom-scroll">
                     </div>
             </div>
-
-        </div>
+        </main>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyWXFDOao_Es9bh0tgluCbu5aM0UEVPEoTi0mPJLg3TbfY68QDqDVA5QtHYr3kmLxtCA/exec"; // นำ URL จาก Apps Script มาวางที่นี่
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyWXFDOao_Es9bh0tgluCbu5aM0UEVPEoTi0mPJLg3TbfY68QDqDVA5QtHYr3kmLxtCA/exec";
         const userData = JSON.parse(localStorage.getItem('userData')) || { user: 'natiphol', name: 'เนติพล' };
 
-        window.onload = () => {
-            document.getElementById('userNameDisplay').innerText = `คุณ${userData.name} (@${userData.user})`;
-            loadLeaveData();
+        window.onload = async () => {
+            document.getElementById('userNameDisplay').innerHTML = `<span class="text-slate-400">Welcome,</span> คุณ${userData.name}`;
+            
+            // โหลดข้อมูล
+            await loadLeaveData();
+            
+            // ซ่อน Loader เมื่อข้อมูลพร้อม
+            const loader = document.getElementById('main-loader');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 500);
+            
             lucide.createIcons();
         };
 
@@ -127,31 +170,31 @@
                 renderQuota(data.quota);
                 renderHistory(data.history);
             } catch (e) {
-                console.error("Load failed", e);
+                console.error("Load Error", e);
             }
             lucide.createIcons();
         }
 
         function renderQuota(q) {
             const types = [
-                { label: 'Sick Leave', used: q.sick.used, limit: q.sick.limit, icon: 'thermometer', color: 'text-rose-500', bg: 'bg-rose-50' },
-                { label: 'Personal Leave', used: q.personal.used, limit: q.personal.limit, icon: 'briefcase', color: 'text-amber-500', bg: 'bg-amber-50' },
-                { label: 'Vacation', used: q.vacation.used, limit: q.vacation.limit, icon: 'palmtree', color: 'text-emerald-500', bg: 'bg-emerald-50' }
+                { label: 'ลาป่วย', used: q.sick.used, limit: q.sick.limit, icon: 'thermometer', color: 'text-rose-500', bg: 'bg-rose-50' },
+                { label: 'ลากิจ', used: q.personal.used, limit: q.personal.limit, icon: 'briefcase', color: 'text-amber-500', bg: 'bg-amber-50' },
+                { label: 'พักร้อน', used: q.vacation.used, limit: q.vacation.limit, icon: 'palmtree', color: 'text-emerald-500', bg: 'bg-emerald-50' }
             ];
 
             document.getElementById('quotaContainer').innerHTML = types.map(t => `
-                <div class="glass-panel p-6 rounded-[2rem] quota-card relative overflow-hidden">
-                    <div class="flex justify-between items-start">
+                <div class="glass p-7 rounded-[2.5rem] relative group hover:border-indigo-200 transition-colors">
+                    <div class="flex justify-between items-start mb-6">
                         <div class="w-12 h-12 ${t.bg} ${t.color} rounded-2xl flex items-center justify-center">
-                            <i data-lucide="${t.icon}"></i>
+                            <i data-lucide="${t.icon}" class="w-6 h-6"></i>
                         </div>
                         <div class="text-right">
-                            <p class="text-[10px] font-black uppercase tracking-tighter text-slate-400">${t.label}</p>
-                            <p class="text-2xl font-bold text-slate-800">${t.used}<span class="text-sm text-slate-300 font-light"> / ${t.limit}</span></p>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">${t.label}</p>
+                            <p class="text-3xl font-bold text-slate-800">${t.used}<span class="text-sm text-slate-300 font-light"> / ${t.limit}</span></p>
                         </div>
                     </div>
-                    <div class="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                        <div class="h-full ${t.color.replace('text', 'bg')}" style="width: ${(t.used/t.limit)*100}%"></div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="h-full ${t.color.replace('text', 'bg')} transition-all duration-1000" style="width: ${(t.used/t.limit)*100}%"></div>
                     </div>
                 </div>
             `).join('');
@@ -159,32 +202,34 @@
 
         function renderHistory(history) {
             const container = document.getElementById('leaveHistory');
-            document.getElementById('historyCount').innerText = `${history.length} Items`;
+            document.getElementById('historyCount').innerText = history.length;
             
-            if (history.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 text-slate-300 uppercase text-xs tracking-widest">No history found</div>`;
+            if (!history || history.length === 0) {
+                container.innerHTML = `<div class="text-center py-20 glass rounded-[2rem] text-slate-400 text-sm">ไม่พบประวัติการลา</div>`;
                 return;
             }
 
-            container.innerHTML = history.map(item => {
-                const statusColor = item.status === 'อนุมัติ' ? 'bg-emerald-50 text-emerald-600' : 
-                                    item.status === 'ปฏิเสธ' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600';
+            container.innerHTML = history.reverse().map(item => {
+                const statusMap = {
+                    'อนุมัติ': 'bg-emerald-500/10 text-emerald-600',
+                    'ปฏิเสธ': 'bg-rose-500/10 text-rose-600',
+                    'รออนุมัติ': 'bg-amber-500/10 text-amber-600'
+                };
                 return `
-                    <div class="glass-panel p-5 rounded-[2rem] flex justify-between items-center group">
-                        <div class="flex items-center gap-4">
-                            <div class="text-center min-w-[50px]">
-                                <p class="text-lg font-bold text-slate-700">${item.days}</p>
-                                <p class="text-[9px] text-slate-400 uppercase font-bold">Days</p>
+                    <div class="glass p-6 rounded-[2rem] flex justify-between items-center group hover:translate-x-1 transition-all border-l-4 ${item.status === 'อนุมัติ' ? 'border-l-emerald-500' : 'border-l-transparent'}">
+                        <div class="flex items-center gap-5">
+                            <div class="bg-white w-14 h-14 rounded-2xl shadow-sm flex flex-col items-center justify-center border border-slate-100">
+                                <span class="text-lg font-bold text-slate-700 leading-none">${item.days}</span>
+                                <span class="text-[8px] uppercase font-bold text-slate-400">วัน</span>
                             </div>
-                            <div class="h-8 w-[1px] bg-slate-100"></div>
                             <div>
-                                <h4 class="font-bold text-slate-700 text-sm">${item.type}</h4>
-                                <p class="text-[10px] text-indigo-500">${new Date(item.start).toLocaleDateString('th-TH')} - ${new Date(item.end).toLocaleDateString('th-TH')}</p>
+                                <h4 class="font-semibold text-slate-800">${item.type}</h4>
+                                <p class="text-[11px] text-indigo-500 font-medium">${formatThaiDate(item.start)} - ${formatThaiDate(item.end)}</p>
                             </div>
                         </div>
                         <div class="text-right">
-                            <span class="text-[10px] px-3 py-1 rounded-full font-bold uppercase ${statusColor}">${item.status}</span>
-                            <p class="text-[10px] text-slate-300 mt-1">${item.reason || ''}</p>
+                            <span class="text-[10px] px-3 py-1 rounded-full font-bold uppercase ${statusMap[item.status] || 'bg-slate-100'}">${item.status}</span>
+                            <p class="text-[10px] text-slate-400 mt-2 italic truncate max-w-[120px]">${item.reason || ''}</p>
                         </div>
                     </div>
                 `;
@@ -192,26 +237,23 @@
         }
 
         async function submitLeave() {
-            const type = document.getElementById('leaveType').value;
             const start = document.getElementById('startDate').value;
             const end = document.getElementById('endDate').value;
             const reason = document.getElementById('reason').value;
 
             if (!start || !end || !reason) {
-                Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
-                return;
+                return Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกข้อมูลให้ครบถ้วน', confirmButtonColor: '#1e293b' });
             }
-
-            // คำนวณจำนวนวันคร่าวๆ
-            const diffTime = Math.abs(new Date(end) - new Date(start));
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
             const btn = document.getElementById('btnSubmit');
             btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i>`;
-            lucide.createIcons();
+            btn.innerHTML = `<div class="spinner w-5 h-5 !border-2 !border-t-white"></div>`;
 
             try {
+                const type = document.getElementById('leaveType').value;
+                const diffTime = Math.abs(new Date(end) - new Date(start));
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
                 const url = `${SCRIPT_URL}?action=submitLeave&user=${userData.user}&userName=${userData.name}&leaveType=${type}&startDate=${start}&endDate=${end}&days=${diffDays}&reason=${encodeURIComponent(reason)}`;
                 const res = await fetch(url);
                 const data = await res.json();
@@ -225,9 +267,14 @@
                 Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด' });
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<span>Submit Request</span>`;
+                btn.innerHTML = `<span>ส่งคำขอการลา</span> <i data-lucide="send" class="w-4 h-4"></i>`;
                 lucide.createIcons();
             }
+        }
+
+        function formatThaiDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
         }
     </script>
 </body>
