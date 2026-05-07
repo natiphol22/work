@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { font-family: 'Kanit', sans-serif; background-color: #fcfdfe; color: #334155; }
         .glass-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid #f1f5f9; }
@@ -32,11 +31,11 @@
         .neo-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #f1f5f9; }
         .neo-card:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); }
         
-        .tab-active { background: #4f46e5; color: white !important; box-shadow: 0 8px 15px -3px rgba(79, 70, 229, 0.4); }
-        .nav-active { color: #4f46e5 !important; font-weight: 600; border-bottom: 2px solid #4f46e5; }
+        .tab-active { background: #4f46e5; color: white; box-shadow: 0 8px 15px -3px rgba(79, 70, 229, 0.4); }
         .fade-in { animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -62,14 +61,14 @@
                     </div>
                 </div>
                 
-                <div class="hidden md:flex items-center gap-8 h-full">
-                    <button onclick="switchMainTab('attendance')" id="nav-attendance" class="nav-active text-slate-400 text-sm flex items-center gap-2 py-2 transition-all">
+                <div class="hidden md:flex items-center gap-6">
+                    <div class="text-indigo-600 font-semibold text-sm flex items-center gap-2">
                         <i data-lucide="calendar-check" class="w-4 h-4"></i> ลงเวลางาน
-                    </button>
-                    <button onclick="switchMainTab('leaves')" id="nav-leaves" class="text-slate-400 text-sm flex items-center gap-2 py-2 transition-all relative">
-                        <i data-lucide="plane" class="w-4 h-4"></i> อนุมัติการลา
-                        <span id="leaveBadge" class="hidden absolute -top-1 -right-4 bg-rose-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">0</span>
-                    </button>
+                    </div>
+                    <div class="text-slate-400 font-medium text-sm flex items-center gap-2 cursor-not-allowed group relative">
+                        <i data-lucide="plane" class="w-4 h-4"></i> ระบบลางาน
+                        <span class="absolute -top-4 left-0 text-[8px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity italic whitespace-nowrap">Coming Soon</span>
+                    </div>
                 </div>
             </div>
 
@@ -86,7 +85,7 @@
 
     <main class="max-w-7xl mx-auto px-6 py-8">
         
-        <div id="attendanceFilters" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-10 fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
             <div class="flex bg-slate-100 p-1 rounded-2xl h-fit">
                 <button id="viewWeek" onclick="setView('week')" class="tab-active flex-1 py-2.5 rounded-xl text-xs font-bold transition-all">สัปดาห์นี้</button>
                 <button id="viewMonth" onclick="setView('month')" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all">รายเดือน</button>
@@ -132,19 +131,12 @@
             </div>
         </div>
 
-        <div id="mainContent" class="hidden space-y-10 fade-in">
-            <div id="attendanceSection" class="space-y-10"></div>
-
-            <div id="leaveSection" class="hidden space-y-6">
-                <h2 class="text-xl font-bold text-slate-900 border-l-4 border-indigo-600 pl-4 py-1">รายการรออนุมัติการลา</h2>
-                <div id="leaveList" class="grid grid-cols-1 gap-4"></div>
-            </div>
-        </div>
+        <div id="mainContent" class="hidden space-y-10 fade-in"></div>
 
     </main>
 
     <div id="memoModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 md:p-10 relative z-10 shadow-2xl">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 md:p-10 relative z-10 shadow-2xl scale-in">
             <div class="flex justify-between items-start mb-6">
                 <div>
                     <h3 id="memoName" class="text-xl font-bold text-slate-900 leading-tight"></h3>
@@ -182,78 +174,55 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzE_zj0ZjtsrGZprhQwQI8uyg8AUe264I5p8g4ForxVv4ODrYMlFIWNsEbJXxZnjLOfBw/exec";
         let rawHistory = [];
-        let leaveHistory = [];
         let currentView = 'week';
 
+        // Initialize App
         async function init() {
             document.getElementById('cfgIn').value = localStorage.getItem('cubic_cfg_in') || '09:00';
             document.getElementById('cfgOut').value = localStorage.getItem('cubic_cfg_out') || '18:00';
             lucide.createIcons();
 
             try {
+                // Fetch Users & Filter out Admin
                 const userRes = await fetch(`${SCRIPT_URL}?action=getUsers`);
                 const users = await userRes.json();
                 const select = document.getElementById('userFilter');
                 users.filter(u => u.trim().toLowerCase() !== 'admin').forEach(u => select.add(new Option(u, u)));
 
+                // Fetch History & Filter out Admin
                 const res = await fetch(`${SCRIPT_URL}?action=getHistory&role=admin`);
                 const data = await res.json();
+                rawHistory = data.filter(item => item.name.trim().toLowerCase() !== 'admin');
                 
-                // Separate Attendance and Leaves (Assumes leave types contain 'ลา')
-                rawHistory = data.filter(item => item.name.trim().toLowerCase() !== 'admin' && !item.type.includes('ลา'));
-                leaveHistory = data.filter(item => item.name.trim().toLowerCase() !== 'admin' && item.type.includes('ลา') && item.status === 'รออนุมัติ');
-
+                // UI Updates
                 document.getElementById('fullLoader').classList.add('hidden');
                 document.getElementById('skeleton').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
-                
-                updateLeaveBadge();
                 renderData();
             } catch (e) {
                 console.error("Init Error:", e);
-                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณารีเฟรชหน้าจอ");
             }
         }
 
-        // Tab Switching Logic
-        function switchMainTab(tab) {
-            const attendSection = document.getElementById('attendanceSection');
-            const leaveSection = document.getElementById('leaveSection');
-            const attendFilters = document.getElementById('attendanceFilters');
-            const navAttend = document.getElementById('nav-attendance');
-            const navLeave = document.getElementById('nav-leaves');
-
-            if (tab === 'leaves') {
-                attendSection.classList.add('hidden');
-                attendFilters.classList.add('hidden');
-                leaveSection.classList.remove('hidden');
-                navLeave.classList.add('nav-active');
-                navAttend.classList.remove('nav-active');
-                renderLeaves();
+        function setView(view) {
+            currentView = view;
+            document.getElementById('viewWeek').className = view === 'week' ? 'tab-active flex-1 py-2.5 rounded-xl text-xs font-bold transition-all' : 'flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all';
+            document.getElementById('viewMonth').className = view === 'month' ? 'tab-active flex-1 py-2.5 rounded-xl text-xs font-bold transition-all' : 'flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all';
+            
+            const mCont = document.getElementById('monthContainer');
+            if (view === 'month') {
+                mCont.classList.remove('hidden');
+                const now = new Date();
+                document.getElementById('monthInput').value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
             } else {
-                attendSection.classList.remove('hidden');
-                attendFilters.classList.remove('hidden');
-                leaveSection.classList.add('hidden');
-                navAttend.classList.add('nav-active');
-                navLeave.classList.remove('nav-active');
-                renderData();
+                mCont.classList.add('hidden');
             }
-            lucide.createIcons();
+            renderData();
         }
 
-        function updateLeaveBadge() {
-            const badge = document.getElementById('leaveBadge');
-            if (leaveHistory.length > 0) {
-                badge.innerText = leaveHistory.length;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        // --- Render Functions (Attendance) ---
         function renderData() {
-            const container = document.getElementById('attendanceSection');
+            const container = document.getElementById('mainContent');
             const userFilter = document.getElementById('userFilter').value;
             const typeFilter = document.getElementById('typeFilter').value;
             const locFilter = document.getElementById('locFilter').value.toLowerCase();
@@ -262,10 +231,19 @@
             const cfgOut = document.getElementById('cfgOut').value;
 
             let filtered = [...rawHistory];
+
+            // 1. Name Filter
             if (userFilter) filtered = filtered.filter(d => d.name === userFilter);
-            if (typeFilter !== 'all') filtered = filtered.filter(d => d.type === typeFilter);
-            if (locFilter !== 'all') filtered = filtered.filter(d => d.memo.toLowerCase().includes(locFilter));
             
+            // 2. Type Filter
+            if (typeFilter !== 'all') filtered = filtered.filter(d => d.type === typeFilter);
+            
+            // 3. Location Filter (Improved Logic)
+            if (locFilter !== 'all') {
+                filtered = filtered.filter(d => d.memo.toLowerCase().includes(locFilter));
+            }
+            
+            // 4. Time Filter
             if (currentView === 'week') {
                 const limit = new Date(); limit.setDate(limit.getDate() - 7);
                 filtered = filtered.filter(d => new Date(d.timestamp) >= limit);
@@ -274,10 +252,11 @@
             }
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="py-20 text-center text-slate-300 italic">ไม่พบประวัติการทำรายการ</div>`;
+                container.innerHTML = `<div class="py-20 text-center text-slate-300 italic">ไม่พบประวัติการทำรายการตามเงื่อนไข</div>`;
                 return;
             }
 
+            // Group by Date
             const groups = filtered.reduce((acc, curr) => {
                 const dateKey = new Date(curr.timestamp).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                 if (!acc[dateKey]) acc[dateKey] = [];
@@ -288,7 +267,9 @@
             container.innerHTML = Object.keys(groups).map(date => `
                 <div class="space-y-4">
                     <h2 class="text-sm font-bold text-slate-900 border-l-4 border-indigo-600 pl-4 py-1">${date}</h2>
-                    <div class="grid grid-cols-1 gap-3">${groups[date].map(item => renderRow(item, cfgIn, cfgOut)).join('')}</div>
+                    <div class="grid grid-cols-1 gap-3">
+                        ${groups[date].map(item => renderRow(item, cfgIn, cfgOut)).join('')}
+                    </div>
                 </div>
             `).join('');
             lucide.createIcons();
@@ -298,6 +279,7 @@
             const date = new Date(item.timestamp);
             const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
             const isCheckIn = item.type === 'เข้างาน';
+            
             let badge = '';
             let timeColor = 'text-slate-900';
             const [refH, refM] = (isCheckIn ? cfgIn : cfgOut).split(':').map(Number);
@@ -330,86 +312,21 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0">
-                        <div class="text-right"><span class="text-xl font-black ${timeColor}">${badge} ${timeStr}</span></div>
-                        ${memoBody ? `<button onclick="viewMemo('${item.name}', '${item.type}', \`${memoBody.replace(/'/g, "\\'").replace(/\n/g, "\\n")}\`)" class="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 shadow-sm"><i data-lucide="file-text" class="w-5 h-5"></i></button>` : '<div class="w-10 h-10"></div>'}
+                        <div class="text-right">
+                            <div class="flex items-center gap-2 justify-end">
+                                ${badge}
+                                <span class="text-xl font-black ${timeColor}">${timeStr}</span>
+                            </div>
+                        </div>
+                        ${memoBody ? `
+                            <button onclick="viewMemo('${item.name}', '${item.type}', \`${memoBody.replace(/'/g, "\\'").replace(/\n/g, "\\n")}\`)" 
+                                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                                <i data-lucide="file-text" class="w-5 h-5"></i>
+                            </button>
+                        ` : '<div class="w-10 h-10"></div>'}
                     </div>
                 </div>
             `;
-        }
-
-        // --- Render Functions (Leaves) ---
-        function renderLeaves() {
-            const container = document.getElementById('leaveList');
-            if (leaveHistory.length === 0) {
-                container.innerHTML = `<div class="py-20 text-center text-slate-300 italic">ไม่มีรายการรออนุมัติการลา</div>`;
-                return;
-            }
-
-            container.innerHTML = leaveHistory.map(item => `
-                <div class="neo-card bg-white p-6 rounded-[2.5rem] flex flex-col md:flex-row md:items-center gap-6 border-l-4 border-amber-400">
-                    <div class="flex items-center gap-5 flex-1">
-                        <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex flex-col items-center justify-center shadow-lg">
-                            <span class="text-lg font-bold">1</span>
-                            <span class="text-[8px] uppercase font-bold opacity-60">วัน</span>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-bold text-slate-800 text-lg">${item.name}</h3>
-                                <span class="text-[10px] px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full font-black uppercase border border-amber-100">${item.type}</span>
-                            </div>
-                            <p class="text-xs text-slate-400 font-medium">${item.timestamp}</p>
-                        </div>
-                    </div>
-                    <div class="flex flex-1 items-center gap-3">
-                        <p class="text-sm text-slate-600 italic">"${item.memo}"</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="approveAction('${item.id}', 'อนุมัติ')" class="px-5 py-2.5 bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-100">อนุมัติ</button>
-                        <button onclick="approveAction('${item.id}', 'ปฏิเสธ')" class="px-5 py-2.5 bg-rose-50 text-rose-500 rounded-xl text-xs font-bold hover:bg-rose-500 hover:text-white transition-all">ปฏิเสธ</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function approveAction(id, status) {
-            const confirm = await Swal.fire({
-                title: 'ยืนยันรายการ?',
-                text: `คุณต้องการ ${status} คำขอนี้ใช่หรือไม่`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: status === 'อนุมัติ' ? '#10b981' : '#f43f5e',
-                confirmButtonText: 'ยืนยัน'
-            });
-
-            if (confirm.isConfirmed) {
-                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-                try {
-                    const res = await fetch(`${SCRIPT_URL}?action=approveLeave&id=${id}&status=${encodeURIComponent(status)}`);
-                    const result = await res.json();
-                    if (result.status === 'success') {
-                        leaveHistory = leaveHistory.filter(l => l.id !== id);
-                        updateLeaveBadge();
-                        renderLeaves();
-                        Swal.fire('สำเร็จ!', `ดำเนินการเรียบร้อยแล้ว`, 'success');
-                    }
-                } catch (e) {
-                    Swal.fire('Error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
-                }
-            }
-        }
-
-        // --- Original Helpers ---
-        function setView(view) {
-            currentView = view;
-            document.getElementById('viewWeek').className = view === 'week' ? 'tab-active flex-1 py-2.5 rounded-xl text-xs font-bold transition-all' : 'flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all';
-            document.getElementById('viewMonth').className = view === 'month' ? 'tab-active flex-1 py-2.5 rounded-xl text-xs font-bold transition-all' : 'flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all';
-            const mCont = document.getElementById('monthContainer');
-            if (view === 'month') {
-                mCont.classList.remove('hidden');
-                const now = new Date();
-                document.getElementById('monthInput').value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
-            } else { mCont.classList.add('hidden'); }
-            renderData();
         }
 
         function viewMemo(name, type, text) {
@@ -418,24 +335,38 @@
             document.getElementById('memoBody').innerText = text;
             document.getElementById('memoModal').classList.remove('hidden');
         }
+
         function closeMemo() { document.getElementById('memoModal').classList.add('hidden'); }
         function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('hidden'); }
+        
         function saveAdminSettings() {
             localStorage.setItem('cubic_cfg_in', document.getElementById('cfgIn').value);
             localStorage.setItem('cubic_cfg_out', document.getElementById('cfgOut').value);
-            renderData(); toggleSettings();
+            renderData();
+            toggleSettings();
         }
 
         function exportToCSV() {
             const userFilter = document.getElementById('userFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const locFilter = document.getElementById('locFilter').value.toLowerCase();
+            
             let filtered = rawHistory;
             if (userFilter) filtered = filtered.filter(d => d.name === userFilter);
+            if (typeFilter !== 'all') filtered = filtered.filter(d => d.type === typeFilter);
+            if (locFilter !== 'all') filtered = filtered.filter(d => d.memo.toLowerCase().includes(locFilter));
+
             const headers = ["วันที่เวลา", "ชื่อพนักงาน", "ประเภท", "บันทึก/สถานที่"];
-            const csvData = "\uFEFF" + [headers.join(","), ...filtered.map(r => [r.timestamp, r.name, r.type, `"${r.memo}"`].join(","))].join("\n");
+            const csvData = "\uFEFF" + [headers.join(","), ...filtered.map(r => {
+                const d = new Date(r.timestamp);
+                const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
+                return [dt, r.name, r.type, `"${r.memo.replace(/"/g, '""')}"`].join(",");
+            })].join("\n");
+
             const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `CubicPlus_Report.csv`;
+            link.download = `CubicPlus_Report_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.csv`;
             link.click();
         }
 
