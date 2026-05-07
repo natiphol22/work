@@ -37,11 +37,12 @@
             flex-shrink: 0;
         }
         
+        /* แก้ไข: ป้องกันตัวอักษรจมตอน Render เป็นภาพ */
         .field-box {
             display: inline-flex;
             border-bottom: 1.5px dotted #666;
             align-items: flex-end;
-            min-height: 20px;
+            min-height: 24px; /* เพิ่มความสูงขั้นต่ำ */
             white-space: nowrap;
             overflow: hidden;
             padding: 0 4px;
@@ -50,7 +51,9 @@
             color: #000000 !important; 
             font-weight: 600;
             white-space: nowrap;
-            margin-bottom: -1px; 
+            line-height: 1; /* บังคับความสูงบรรทัดให้คงที่ */
+            margin-bottom: 2px; /* ดันขึ้นจากเส้นเล็กน้อย */
+            display: inline-block;
         }
 
         .doc-row { margin-bottom: 8px; display: flex; align-items: flex-end; flex-wrap: wrap; }
@@ -106,7 +109,6 @@
 </head>
 <body class="bg-black text-slate-200 h-screen overflow-hidden flex">
 
-    <!-- LEFT PANEL -->
     <div class="w-[450px] h-full flex flex-col glass-panel z-10 shadow-2xl relative">
         <div class="p-6 border-b border-white/10 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl"></div>
@@ -114,11 +116,10 @@
                 <svg class="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 เบิกค่าใช้จ่าย
             </h1>
-            <p class="text-xs text-slate-400 mt-1">V.1</p>
+            <p class="text-xs text-slate-400 mt-1">V.1.2 - Anti Sink Font</p>
         </div>
 
         <div class="p-6 overflow-y-auto flex-1 space-y-8">
-            <!-- 01 Document Info -->
             <div class="bg-white/5 p-4 rounded-xl border border-white/5 relative group hover:border-cyan-500/30 transition-all">
                 <h2 class="text-sm font-bold text-cyan-400 tracking-wider mb-4">01. ข้อมูลเอกสาร</h2>
                 <div class="space-y-3 relative">
@@ -137,7 +138,6 @@
                 </div>
             </div>
 
-            <!-- 02 Requester Info -->
             <div class="bg-white/5 p-4 rounded-xl border border-white/5 relative group hover:border-emerald-500/30 transition-all">
                 <h2 class="text-sm font-bold text-emerald-400 tracking-wider mb-4">02. ข้อมูลผู้เบิกและรายละเอียดงาน</h2>
                 <div class="space-y-3">
@@ -172,7 +172,6 @@
                 </div>
             </div>
 
-            <!-- 03 Work Period -->
             <div class="bg-white/5 p-4 rounded-xl border border-white/5 relative group hover:border-blue-500/30 transition-all">
                 <h2 class="text-sm font-bold text-blue-400 tracking-wider mb-4">03. ระยะเวลาการปฏิบัติงาน</h2>
                 <div class="space-y-3">
@@ -202,7 +201,6 @@
                 </div>
             </div>
 
-            <!-- 04 Expenses -->
             <div class="bg-white/5 p-4 rounded-xl border border-white/5 relative group hover:border-purple-500/30 transition-all">
                 <h2 class="text-sm font-bold text-purple-400 tracking-wider mb-4 flex justify-between items-center">
                     04. ค่าใช้จ่าย
@@ -264,7 +262,6 @@
     </div>
 
 
-    <!-- PREVIEW AREA -->
     <div class="flex-1 preview-container" id="print-area">
         <div class="a4-paper" id="a4-document">
             
@@ -396,7 +393,6 @@
             let monthOpts = '<option value="">เดือน</option>';
             months.forEach(m => monthOpts += `<option value="${m}">${m}</option>`);
             
-            // ปี พ.ศ. เริ่มที่ 2569
             let yearOpts = '<option value="">พ.ศ.</option>';
             let startYear = 2569;
             for(let i=startYear; i<=startYear+5; i++) {
@@ -529,9 +525,10 @@
                 try {
                     const paper = document.getElementById('a4-document');
                     const canvas = await html2canvas(paper, { 
-                        scale: 2, 
+                        scale: 3, // เพิ่มความละเอียดเป็น 3 เท่า ช่วยให้ตัวอักษรคมและไม่จม
                         useCORS: true, 
                         allowTaint: true, 
+                        letterRendering: true, // บังคับให้วาดตัวอักษรทีละตัว ป้องกัน offset เพี้ยน
                         backgroundColor: "#ffffff",
                         scrollY: -window.scrollY 
                     });
@@ -545,7 +542,7 @@
                     link.href = imgData;
                     link.click();
                 } catch (err) {
-                    alert('แนะนำให้รันบน Live Server หรือปิด CORS ใน Browser ครับ');
+                    alert('แนะนำให้รันบน Live Server ครับ');
                     console.error("html2canvas Error: ", err);
                 }
             }
