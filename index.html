@@ -88,43 +88,40 @@
             inset: 0;
             background: #fff;
             z-index: 100;
-            transform: scale(0.95) translateY(20px);
+            transform: translateY(100%);
             opacity: 0;
             pointer-events: none;
             transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 24px;
-            margin: 10px;
             overflow: hidden;
         }
 
         #fullPageViewer.active {
-            transform: scale(1) translateY(0);
+            transform: translateY(0);
             opacity: 1;
             pointer-events: auto;
-            margin: 0;
-            border-radius: 0;
         }
 
-        .btn-back-float {
+        /* 🔘 ปรับปุ่มกลับหน้าหลักให้สวยและเล็กลง */
+        .btn-back-floating {
             position: absolute;
-            top: 24px;
-            left: 24px;
+            top: 20px;
+            left: 20px;
             z-index: 110;
-            padding: 12px 20px;
+            width: 42px;
+            height: 42px;
             background: rgba(15, 23, 42, 0.9);
             color: white;
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
+            border-radius: 12px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: 500;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-            transition: all 0.3s;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
         }
-        .btn-back-float:hover {
-            transform: translateX(5px);
-            background: #000;
+        .btn-back-floating:hover {
+            background: #6366f1;
+            transform: scale(1.05);
         }
 
         .fade-in { animation: fadeIn 0.6s ease-out forwards; }
@@ -135,11 +132,10 @@
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-center p-6">
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
 
 <div class="bg-mesh"></div>
 
-<!-- 🔑 LOGIN SECTION -->
 <div id="loginSection" class="w-full max-w-[420px] fade-in">
     <div class="premium-card rounded-[2.5rem] p-10 text-center shadow-2xl border border-white/50">
         <div class="mb-8 flex justify-center">
@@ -174,79 +170,70 @@
     </div>
 </div>
 
-<!-- 📊 DASHBOARD SECTION -->
 <div id="welcomeSection" class="hidden w-full max-w-6xl fade-in">
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+    <header class="flex flex-row justify-between items-center mb-12 gap-6">
         <div class="flex items-center gap-5">
             <img src="LOGO.png" alt="Logo" class="w-12 h-12 object-contain">
             <div>
-                <h2 id="welcomeMsg" class="text-3xl font-bold text-slate-900 tracking-tight"></h2>
+                <h2 id="welcomeMsg" class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight"></h2>
                 <div class="flex items-center gap-2 text-slate-500 text-sm">
                     <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                     ระบบพร้อมใช้งาน
                 </div>
             </div>
         </div>
-        <button onclick="handleLogout()" class="group flex items-center gap-3 px-5 py-3 rounded-2xl border border-slate-200 hover:bg-red-50 hover:border-red-100 transition-all">
-            <span class="text-sm font-semibold text-slate-600 group-hover:text-red-500">ออกจากระบบ</span>
+        <button onclick="handleLogout()" class="group flex items-center gap-3 px-4 py-3 rounded-2xl border border-slate-200 hover:bg-red-50 hover:border-red-100 transition-all">
+            <span class="hidden sm:block text-sm font-semibold text-slate-600 group-hover:text-red-500">ออกจากระบบ</span>
             <div class="text-slate-400 group-hover:text-red-500">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             </div>
         </button>
     </header>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <!-- 1. AI Assistant -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
         <div onclick="openFullPage('Ai.html')" class="premium-card ai-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm">🤖</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">AI Assistant</h3>
             <p class="text-slate-400 text-sm leading-relaxed">ตรวจสอบประกัน ARS และผู้ช่วยส่วนตัว</p>
         </div>
 
-        <!-- 2. ลงเวลางาน -->
         <div onclick="openFullPage('Attendance.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-emerald-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm">⏰</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">ลงเวลางาน</h3>
             <p class="text-slate-400 text-sm leading-relaxed">เช็คอิน-เช็คเอาท์ออนไลน์ พร้อมระบุตำแหน่ง</p>
         </div>
 
-        <!-- 3. ปฏิทินวันหยุดวันลา -->
         <div class="premium-card disabled p-8 rounded-[2rem]">
             <div class="w-14 h-14 bg-slate-100 rounded-2xl mb-6 flex items-center justify-center text-2xl">📅</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">วันหยุด/วันลา</h3>
-            <p class="text-indigo-500 text-xs font-semibold tracking-wider">*กำลังพัฒนาระบบ</p>
+            <p class="text-indigo-500 text-[10px] font-semibold tracking-wider uppercase">Coming Soon</p>
         </div>
 
-        <!-- 4. สรุปงานรายวัน -->
         <div class="premium-card disabled p-8 rounded-[2rem]">
             <div class="w-14 h-14 bg-slate-100 rounded-2xl mb-6 flex items-center justify-center text-2xl">📝</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">สรุปงานรายวัน</h3>
-            <p class="text-indigo-500 text-xs font-semibold tracking-wider">*กำลังพัฒนาระบบ</p>
+            <p class="text-indigo-500 text-[10px] font-semibold tracking-wider uppercase">Coming Soon</p>
         </div>
 
-        <!-- 5. เบิกค่าใช้จ่าย -->
         <div onclick="openFullPage('Form.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-blue-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">💰</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">เบิกค่าใช้จ่าย</h3>
             <p class="text-slate-400 text-sm leading-relaxed">ยื่นคำขอเบิกงบประมาณและค่าใช้จ่ายบริษัท</p>
         </div>
 
-        <!-- 6. คำนวณน้ำมัน -->
         <div onclick="openFullPage('oil.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-orange-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 shadow-sm">⛽</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">คำนวณน้ำมัน</h3>
             <p class="text-slate-400 text-sm leading-relaxed">ระบบบันทึกและคำนวณอัตราสิ้นเปลืองน้ำมัน</p>
         </div>
 
-        <!-- 7. แปลงไฟล์ PDF -->
         <div onclick="openFullPage('PDFtoJPG.html')" class="premium-card p-8 rounded-[2rem] cursor-pointer group">
             <div class="w-14 h-14 bg-emerald-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-sm">📄</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">แปลงไฟล์ PDF</h3>
             <p class="text-slate-400 text-sm leading-relaxed">จัดการแปลงไฟล์เอกสารให้เป็นรูปภาพ JPG</p>
         </div>
 
-        <!-- 8. Admin Card -->
-        <div id="adminCard" onclick="goToAdmin()" class="premium-card p-8 rounded-[2rem] border-2 border-transparent bg-white shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all cursor-pointer group">
+        <div id="adminCard" onclick="goToAdmin()" class="premium-card p-8 rounded-[2rem] border-2 border-transparent bg-white shadow-sm hover:shadow-xl transition-all cursor-pointer group">
             <div class="w-14 h-14 bg-indigo-50 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⚙️</div>
             <h3 class="text-xl font-bold mb-2 text-slate-800">Admin Report</h3>
             <p class="text-slate-400 text-sm">ตรวจสอบและกรองข้อมูลการลงเวลาพนักงาน</p>
@@ -256,16 +243,14 @@
         </div>
     </div>
 
-    <footer class="mt-20 text-center text-slate-400 text-xs tracking-widest uppercase opacity-50">
+    <footer class="mt-20 text-center text-slate-400 text-[10px] tracking-widest uppercase opacity-50">
         © 2026 Executive Business Portal • Version 2.0
     </footer>
 </div>
 
-<!-- 🖥️ VIEWER MODAL -->
 <div id="fullPageViewer">
-    <div onclick="closeFullPage()" class="btn-back-float cursor-pointer hover:scale-105 active:scale-95">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        <span>กลับหน้าหลัก</span>
+    <div onclick="closeFullPage()" class="btn-back-floating cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </div>
     <iframe id="mainIframe" class="w-full h-full border-none"></iframe>
 </div>
@@ -280,11 +265,8 @@
         if (savedUser === 'true') {
             showDashboard(savedName);
             checkAdminAccess();
-
-            // เช็คว่ามี Hash ใน URL หรือไม่ (ใช้ตอนกด F5)
             const currentHash = window.location.hash.replace('#', '');
             if (currentHash) {
-                // เปิดหน้าเดิมทันที
                 setTimeout(() => openFullPage(currentHash), 100);
             }
         }
@@ -339,12 +321,10 @@
 
     function handleLogout() {
         localStorage.clear();
-        // ล้าง Hash ออกด้วยตอน Logout
         window.location.hash = "";
         location.reload();
     }
 
-    // ฟังก์ชันเปิดหน้า Full Page (เพิ่มระบบ Hash)
     function openFullPage(url){
         const user = localStorage.getItem('userLogin') || "Guest";
         const finalUrl = url.includes('?') ? `${url}&user=${user}` : `${url}?user=${user}`;
@@ -352,18 +332,12 @@
         document.getElementById('mainIframe').src = finalUrl;
         document.getElementById('fullPageViewer').classList.add('active');
         document.body.style.overflow = 'hidden';
-
-        // บันทึกชื่อหน้าลงใน URL Hash เพื่อให้ F5 แล้วไม่หาย
         window.location.hash = url;
     }
 
-    // ฟังก์ชันปิดหน้า (ล้างระบบ Hash)
     function closeFullPage(){
         document.getElementById('fullPageViewer').classList.remove('active');
-        
-        // ลบ Hash ออกจาก URL เมื่อกลับหน้าหลัก
         history.replaceState(null, null, ' '); 
-
         setTimeout(() => {
             document.getElementById('mainIframe').src = "";
             document.body.style.overflow = 'auto';
@@ -378,12 +352,12 @@
         if (role !== 'admin') {
             adminCard.style.opacity = "0.5";
             adminCard.classList.add('disabled');
-            adminBadge.innerText = "จำกัดสิทธิ์เฉพาะ Admin";
+            adminBadge.innerText = "จำกัดสิทธิ์ Admin";
             adminBadge.className = "mt-4 inline-block px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-bold rounded-full";
         } else {
             adminCard.style.opacity = "1";
             adminCard.classList.remove('disabled');
-            adminBadge.innerText = "สิทธิ์เฉพาะผู้ดูแล";
+            adminBadge.innerText = "สิทธิ์ผู้ดูแลระบบ";
             adminBadge.className = "mt-4 inline-block px-3 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-bold rounded-full uppercase tracking-wider";
         }
     }
