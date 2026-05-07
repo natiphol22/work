@@ -276,9 +276,17 @@
     window.onload = function() {
         const savedUser = localStorage.getItem('isLoggedIn');
         const savedName = localStorage.getItem('userName');
+        
         if (savedUser === 'true') {
             showDashboard(savedName);
-            checkAdminAccess(); // ตรวจสอบสิทธิ์ทันทีเมื่อโหลดหน้า
+            checkAdminAccess();
+
+            // เช็คว่ามี Hash ใน URL หรือไม่ (ใช้ตอนกด F5)
+            const currentHash = window.location.hash.replace('#', '');
+            if (currentHash) {
+                // เปิดหน้าเดิมทันที
+                setTimeout(() => openFullPage(currentHash), 100);
+            }
         }
     };
 
@@ -298,14 +306,13 @@
 
             if(data.status === "success" || data.result === "success") {
                 const displayName = data.name || user;
-                // บันทึกข้อมูลลง LocalStorage ตามข้อมูลจาก Google Sheets
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('userName', displayName);
                 localStorage.setItem('userLogin', user); 
-                localStorage.setItem('userRole', data.role || "Staff"); // บันทึก Role (Admin/Staff)
+                localStorage.setItem('userRole', data.role || "Staff");
                 
                 showDashboard(displayName);
-                checkAdminAccess(); // ตรวจสอบสิทธิ์หลัง Login สำเร็จ
+                checkAdminAccess();
             } else {
                 alert(data.message || "ข้อมูลไม่ถูกต้อง");
                 btn.innerText = "Sign In to Dashboard";
@@ -332,39 +339,48 @@
 
     function handleLogout() {
         localStorage.clear();
+        // ล้าง Hash ออกด้วยตอน Logout
+        window.location.hash = "";
         location.reload();
     }
 
+    // ฟังก์ชันเปิดหน้า Full Page (เพิ่มระบบ Hash)
     function openFullPage(url){
         const user = localStorage.getItem('userLogin') || "Guest";
         const finalUrl = url.includes('?') ? `${url}&user=${user}` : `${url}?user=${user}`;
+        
         document.getElementById('mainIframe').src = finalUrl;
         document.getElementById('fullPageViewer').classList.add('active');
         document.body.style.overflow = 'hidden';
+
+        // บันทึกชื่อหน้าลงใน URL Hash เพื่อให้ F5 แล้วไม่หาย
+        window.location.hash = url;
     }
 
+    // ฟังก์ชันปิดหน้า (ล้างระบบ Hash)
     function closeFullPage(){
         document.getElementById('fullPageViewer').classList.remove('active');
+        
+        // ลบ Hash ออกจาก URL เมื่อกลับหน้าหลัก
+        history.replaceState(null, null, ' '); 
+
         setTimeout(() => {
             document.getElementById('mainIframe').src = "";
             document.body.style.overflow = 'auto';
         }, 500);
     }
 
-    // ฟังก์ชันตรวจสอบสิทธิ์ Admin
     function checkAdminAccess() {
         const role = (localStorage.getItem('userRole') || "").toLowerCase(); 
         const adminCard = document.getElementById('adminCard');
         const adminBadge = document.getElementById('adminBadge');
 
         if (role !== 'admin') {
-            // หากไม่ใช่ Admin ให้จางปุ่มลงและปิดการคลิก
             adminCard.style.opacity = "0.5";
             adminCard.classList.add('disabled');
             adminBadge.innerText = "จำกัดสิทธิ์เฉพาะ Admin";
             adminBadge.className = "mt-4 inline-block px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-bold rounded-full";
         } else {
-            // หากเป็น Admin ให้แสดงผลปกติ
             adminCard.style.opacity = "1";
             adminCard.classList.remove('disabled');
             adminBadge.innerText = "สิทธิ์เฉพาะผู้ดูแล";
