@@ -14,6 +14,8 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.7);
         }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -22,7 +24,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
         <div>
             <h1 class="text-3xl font-bold text-slate-900 tracking-tight">การจัดการวันลา</h1>
-            <p class="text-slate-500 mt-1">ตรวจสอบสิทธิ์และสถานะการลาของคุณ</p>
+            <p class="text-slate-500 mt-1" id="welcome-text">ตรวจสอบสิทธิ์และสถานะการลาของคุณ</p>
         </div>
         <button onclick="toggleModal(true)" class="group bg-slate-900 hover:bg-indigo-600 text-white px-8 py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center gap-3">
             <i class="fas fa-plus text-sm group-hover:rotate-90 transition-transform"></i>
@@ -115,18 +117,19 @@
 </div>
 
 <script>
-    // 🔗 เชื่อมต่อกับระบบหน้าหลัก (Portal)
+    // 🔗 แก้ไขเป็น URL ของคุณ
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTUr0CwjDhR2vCKaqkcQlNrwsLXfZlDp9vqpGQSxaktbyV_3dWY1OGvPdRLtFBhYCzWA/exec'; 
     
-    // ดึงข้อมูลจาก LocalStorage ที่หน้าหลักบันทึกไว้
-    const CURRENT_USER = localStorage.getItem('userLogin'); // Username
-    const CURRENT_NAME = localStorage.getItem('userName');  // Display Name
+    // ดึงข้อมูลจาก LocalStorage
+    const CURRENT_USER = localStorage.getItem('userLogin'); 
+    const CURRENT_NAME = localStorage.getItem('userName'); 
 
     window.onload = () => {
         if (!CURRENT_USER) {
             document.body.innerHTML = `<div class="h-screen flex items-center justify-center font-bold text-slate-400 uppercase tracking-widest">กรุณาเข้าสู่ระบบผ่านหน้าหลัก</div>`;
             return;
         }
+        document.getElementById('welcome-text').innerText = `คุณ ${CURRENT_NAME || CURRENT_USER} - ตรวจสอบสิทธิ์และสถานะการลาของคุณ`;
         loadLeaveData();
     };
 
@@ -177,21 +180,28 @@
     document.getElementById('leaveForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerText = 'กำลังส่งข้อมูล...';
-
+        
         const sDate = document.getElementById('startDate').value;
         const eDate = document.getElementById('endDate').value;
+        const totalDays = calculateDays(sDate, eDate);
+
+        if (totalDays <= 0) {
+            alert('วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'กำลังส่งข้อมูล...';
 
         const formData = {
             action: 'submitLeave',
             user: CURRENT_USER,
-            userName: CURRENT_NAME,
+            userName: CURRENT_NAME || CURRENT_USER,
             leaveType: document.getElementById('leaveType').value,
             startDate: sDate,
             endDate: eDate,
             reason: document.getElementById('reason').value,
-            days: calculateDays(sDate, eDate)
+            days: totalDays
         };
 
         try {
@@ -204,7 +214,7 @@
                 document.getElementById('leaveForm').reset();
                 loadLeaveData();
             }
-        } catch (err) { alert('เกิดข้อผิดพลาด'); }
+        } catch (err) { alert('เกิดข้อผิดพลาดในการส่งข้อมูล'); }
         finally {
             btn.disabled = false;
             btn.innerText = 'ยืนยันการส่งคำขอ';
